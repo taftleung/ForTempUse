@@ -1,0 +1,2810 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Specification &amp; Integration Guide of HSBC Hong Kong QR Code Collection | API Reference</title>
+    <link rel="stylesheet" href="stylesheets/foundation.min.css" />
+    <link rel="stylesheet" href="stylesheets/spectacle.min.css" />
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <!-- <script src="javascripts/foundation.js"></script> -->
+    <script src="javascripts/spectacle.min.js"></script>
+  </head>
+  <body id="spectacle">
+    <div id="page" class="drawer-layout drawer-slide-right-large">
+      <div id="sidebar">
+        <button class="close-button" aria-label="Close menu" type="button" data-drawer-close>
+          <span aria-hidden="true">×</span>
+        </button>
+        <nav id="nav" role="navigation">
+          <h5>Topics</h5>
+          <a href="#introduction">Introduction</a>
+          <a href="#authentication">Authentication</a>
+          <h5>Operations</h5>
+          <section>
+            <a href="#tag-Inbound-API">Inbound API</a>
+            <ul>
+              <li>
+                <a href="#operation--payment-qrCode-post"> Payment QR Code Creation API </a>
+              </li>
+              <li>
+                <a href="#operation--payment-enquiry-post"> Payment Status Enquiry API </a>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <a href="#tag-Outbound-API">Outbound API</a>
+            <ul>
+              <li>
+                <a href="#operation---Client_Defined_Endpoint--post"> Payment Status Notification API </a>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <a href="#tag-Simulation-API">Simulation API</a>
+            <ul>
+              <li>
+                <a href="#operation--payment-simulation-post"> Payment Simulation API </a>
+              </li>
+            </ul>
+          </section>
+          <h5>Schema Definitions</h5>
+          <a href="#definition-subAmountObj"> subAmountObj </a>
+          <a href="#definition-commonRespObj"> commonRespObj </a>
+          <a href="#definition-exceptionModel"> exceptionModel </a>
+          <a href="#definition-qrCodeRequestModel"> qrCodeRequestModel </a>
+          <a href="#definition-qrCodeResponseModel"> qrCodeResponseModel </a>
+          <a href="#definition-txnEnqRequestModel"> txnEnqRequestModel </a>
+          <a href="#definition-txnEnqResponseModel"> txnEnqResponseModel </a>
+          <a href="#definition-paySimRequestModel"> paySimRequestModel </a>
+          <a href="#definition-paySimResponseModel"> paySimResponseModel </a>
+          <a href="#definition-statusReturnRequestModel"> statusReturnRequestModel </a>
+          <a href="#definition-statusReturnResponseModel"> statusReturnResponseModel </a>
+          <a href="#definition-qrCodeResponseModel_response"> qrCodeResponseModel_response </a>
+          <a href="#definition-txnEnqResponseModel_response"> txnEnqResponseModel_response </a>
+          <a href="#definition-paySimResponseModel_response"> paySimResponseModel_response </a>
+        </nav>
+      </div>
+      <div id="docs" class="row collapse expanded drawer" data-drawer>
+        <button class="floating-menu-icon" type="button" data-drawer-slide="right">
+          <span class="hamburger"></span>
+        </button>
+        <div class="example-box doc-content"></div>
+        <article>
+          <h1 class="doc-title">API Specification &amp; Integration Guide of HSBC Hong Kong QR Code Collection
+            <span>API Reference</span>
+          </h1>
+          <div id="introduction" data-traverse-target="introduction">
+            <div class="doc-row">
+              <div class="doc-copy">
+                <p>
+                  <strong>
+                    <em>CONFIDENTIAL</em>
+                  </strong>
+                </p>
+                <h1 id="introduction">Introduction</h1>
+                <p>This document includes the
+                  <strong>Integration Guide</strong> and
+                  <strong>OpenAPI specification</strong> for describing REST APIs of HSBC Collection of digital payments - HK Faster Payments System (HKFPS).</p>
+                <h1 id="update-log">Update Log</h1>
+                <ul>
+                  <li>[Jul 11, 2018]
+                    <strong>v1.13</strong> Changed URL endpoint of <code>Payment Simulation API</code></li>
+                  <li>[Jun 29, 2018]
+                    <strong>v1.12</strong>
+                    <ul>
+                      <li>Updated content section <code>Getting Started</code> <code>Key Renewal</code> <code>Message Encryption</code></li>
+                      <li>Added new API <code>Payment Simulation</code></li>
+                      <li>Added new validation rule of <code>QR Code API</code></li>
+                    </ul>
+                  </li>
+                  <li>[Jun 14, 2018]
+                    <strong>v1.11</strong>
+                    <ul>
+                      <li>Changed maxLength of field <code>posMachineId</code> <code>employeeId</code></li>
+                      <li>Added Possible Value of <code>proCode</code> of response of QR Code API &amp; Enquiry API</li>
+                    </ul>
+                  </li>
+                  <li>[Jun 13, 2018]
+                    <strong>v1.10a</strong>
+                    <ul>
+                      <li>Changed datetime format to JSON standard <code>yyyy-MM-dd&#39;T&#39;HH:mm:ssZ</code></li>
+                      <li>Removed Possible Value <code>Fail</code> from field <code>proCode</code> in Enquiry API</li>
+                      <li>Added Possible Value <code>HK</code> into field <code>country</code> in QR Code request API</li>
+                    </ul>
+                  </li>
+                  <li>[Jun 6, 2018]
+                    <strong>v1.9</strong>
+                    <ul>
+                      <li>Changed fields order in QR Code API</li>
+                      <li>Added <code>debtorName</code> to Notification API</li>
+                      <li>Removed <code>qrCodeRefId</code></li>
+                    </ul>
+                  </li>
+                  <li>[Jun 4, 2018]
+                    <strong>v1.8a</strong>
+                    <ul>
+                      <li>Changed maxlength of <code>qrCode</code> <code>employeeId</code></li>
+                      <li>Added <code>currency</code> to Enquiry &amp; Notification API</li>
+                      <li>Added <code>bankTxnId</code> to Enquiry API</li>
+                      <li>Renamed fields <code>bankTxnTime</code> <code>totalAmtPaid</code> <code>subAmtPaid</code></li>
+                    </ul>
+                  </li>
+                  <li>[May 31, 2018]
+                    <strong>v1.7</strong> Changed API endpoint names &amp; field names including <code>txnRef</code> <code>payMethod</code> <code>posMachineId</code> <code>employeeId</code></li>
+                  <li>[May 29, 2018]
+                    <strong>v1.6</strong> All amount fields are changed from maxlength 16 to 12 according to EMVCo standard</li>
+                  <li>[May 28, 2018]
+                    <strong>v1.5</strong> New Fields added <code>merTimeout</code></li>
+                  <li>[May 25, 2018]
+                    <strong>v1.4</strong> Refined HTTP Response Code</li>
+                  <li>[May 16, 2018]
+                    <strong>v1.3</strong> New Fields added <code>totalAmt</code> <code>subAmt</code> <code>fpsTxnTime</code></li>
+                  <li>[May 14, 2018]
+                    <strong>v1.2</strong> New Fields added <code>txnChannel</code> <code>posMachineId</code> <code>employeeId</code> <code>qrCodeRefId</code></li>
+                  <li>[May 4, 2018]
+                    <strong>v1.1</strong> Final Revision</li>
+                  <li>[May 3, 2018]
+                    <strong>v1.0</strong> Initial Version </li>
+                </ul>
+                <h1 id="getting-started">Getting Started</h1>
+                <h2 id="step-1-contact-hsbc-glcm">Step 1: Contact HSBC GLCM</h2>
+                <p>Before getting started with Testing of HSBC HKFPS APIs, please contact HSBC GLCM team to acquire all prerequisites which covered in Step 2.</p>
+                <h2 id="step-2-get-all-prerequisites">Step 2: Get All Prerequisites</h2>
+                <h3 id="client-id-client-secret">Client ID &amp; Client Secret</h3>
+                <ul>
+                  <li>HSBC will deliver the Client ID and Client Secret
+                    <em>(both in text/plain format)</em> to Merchant via secure email during Merchant onboarding procedure.</li>
+                  <li>Merchant is required to put the said pair into HTTP header every time when consumes API for API Authentication. Format is defined in
+                    <strong>Authentication</strong> section.</li>
+                </ul>
+                <h3 id="merchant-profile-merchant-id-">Merchant Profile (Merchant ID)</h3>
+                <ul>
+                  <li>HSBC will deliver the Merchant ID to Merchant via secure email during Merchant onboarding procedure.</li>
+                  <li>Merchant is required to put the Merchant ID into field <code>merId</code> every time when submits Payment Request API for Merchant identification.</li>
+                  <li>Here is the Merchant ID assigning flow for reference:<pre><code class="hljs"><span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">img</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"images/profile_setup.png"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+</code></pre> </li>
+                </ul>
+                <h3 id="x-509-public-key-certificate">X.509 Public Key Certificate</h3>
+                <ul>
+                  <li>Both HSBC and Merchant to generate and exchange <code>Public Key Certificate</code> for
+                    <strong>Message Encryption</strong> purpose.</li>
+                  <li>Merchant is required to use HSBC&#39;s <code>Public Key</code> to encrypt a message every time it sends to HSBC and verify a signed message every time it received from HSBC. Vice versa, HSBC will use Merchant&#39;s <code>Public Key</code> to do the same upon message sent and received from Merchant. Details will be covered in
+                    <strong>Message Encryption</strong> section.</li>
+                  <li>For security purposes, Merchant is required to renew <code>Public Certificate</code> every two years. For details, please read
+                    <strong>Key Renewal</strong> section.</li>
+                  <li>Here is the key exchange flow for reference: <pre><code class="hljs"><span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">img</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"images/key_setup.png"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+</code></pre> </li>
+                </ul>
+                <h3 id="keyid-of-jws-jwe">keyID of JWS &amp; JWE</h3>
+                <ul>
+                  <li>HSBC uses JSON Web Signature (JWS) standard to sign a message together with JSON Web Encryption (JWE) standard to encrypt the signed message. <code>keyID</code> is used when creating a JWS or JWE Object, the value of the <code>KeyID</code> is expected to be pre-agreed between HSBC &amp; Merchant.</li>
+                  <li><code>KeyID</code> is also used to pair the corresponding <code>Private/Public Key</code> that stored at Merchant and HSBC&#39;s system respectively. Hence, Merchant may need to change the KeyID during Key Renewal, for details, please see
+                    <strong>Key Renewal</strong> section.</li>
+                </ul>
+                <h3 id="ssl-connection">SSL Connection</h3>
+                <ul>
+                  <li>Merchant to setup HTTPS connection (TLS 1.2) to allow secured API messaging.</li>
+                </ul>
+                <h2 id="step-3-test-in-sandbox">Step 3: Test in Sandbox</h2>
+                <p>Merchant can test and simulate API calls in HSBC sandbox. Here is the sample API testing flow:</p> <pre><code class="hljs"><span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">img</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"images/api_flow.png"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+</code></pre>
+                <ol>
+                  <li>Buyer places order</li>
+                  <li>Merchant to submit
+                    <strong>QR Code Creation API</strong> request</li>
+                  <li>HSBC backend system to generate QR Code token</li>
+                  <li>Return QR Code token via
+                    <strong>QR Code Creation API</strong> response </li>
+                  <li>Merchant to trigger
+                    <strong>Payment Simulation API</strong> in order to simulate a payment submission.
+                    <ul>
+                      <li>
+                        <em>Payment Simulation API is for testing purpose and only available in
+                          <strong>sandbox</strong> environment.</em>
+                      </li>
+                      <li>
+                        <em>In the real world scenario -
+                          <strong>Production</strong> environment, a payment will be submitted when buyer scans the QR Code and confirms payment with their SVF mobile App.</em>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>Payment completed</li>
+                  <li>Acknowledge message will be sent back via
+                    <strong>Status Notification API</strong> right after payment status is changed to
+                    <em>Completed</em> at HSBC backend system.</li>
+                  <li>Merchant to notify a completed order to buyer</li>
+                  <li>Merchant can submit a
+                    <strong>Status Enquiry API</strong> to check payment status anytime after a payment request or found no
+                    <em>acknowledge message</em> returned after a certain period of time.</li>
+                  <li>Return payment status via
+                    <strong>Status Enquiry API</strong> response</li>
+                </ol>
+                <h3 id="testing-parameters-">Testing Parameters:</h3>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Value</th>
+                      <th>Remark</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>API
+                        <strong>Base URL</strong> of Sandbox Environment</td>
+                      <td>
+                        <a href="https://devcluster.api.p2g.netd2.hsbc.com.hk/glcm-mobilecoll-mchk-ea-merchantservices-sct-proxy/v1/">https://devcluster.api.p2g.netd2.hsbc.com.hk/glcm-mobilecoll-mchk-ea-merchantservices-sct-proxy/v1/</a>
+                      </td>
+                      <td>For QR Code Creation &amp; Enquiry API</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Full URL</strong> endpoint of Payment Simulation API</td>
+                      <td>
+                        <a href="https://devcluster.api.p2g.netd2.hsbc.com.hk/glcm-mobilecoll-mcasp-paysim-ea-merchantservices-sct-proxy/v1/hk/payment/simulation">https://devcluster.api.p2g.netd2.hsbc.com.hk/glcm-mobilecoll-mcasp-paysim-ea-merchantservices-sct-proxy/v1/hk/payment/simulation</a>
+                      </td>
+                      <td>For Payment Simulation API Only</td>
+                    </tr>
+                    <tr>
+                      <td>Client ID</td>
+                      <td>8b915a4f5b5047f091f210e2232b5ced</td>
+                      <td>Set in HTTP Header.
+                        <strong>
+                          <em>This is a sample value, Merchant should get its own Testing Client ID from HSBC</em>
+                        </strong>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Client Secret</td>
+                      <td>1bb456a541dc416dB6016B5F9583C606</td>
+                      <td>Set in HTTP Header.
+                        <strong>
+                          <em>This is a sample value, Merchant should get its own Testing Client Secret from HSBC</em>
+                        </strong>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Merchant ID</td>
+                      <td>H092091H9730001</td>
+                      <td>API Field value.
+                        <strong>
+                          <em>This is a sample value, Merchant should get its own Testing Merchant ID from HSBC</em>
+                        </strong>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>keyID of JWS &amp; JWE</td>
+                      <td>0001</td>
+                      <td>Set in program code when creating JWS/JWE Object.
+                        <strong>
+                          <em>Fixed value for sandbox</em>
+                        </strong>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p>Let&#39;s start your first API call, you can first test your API calls
+                  <strong>without encryption</strong> before you spend the time on key exchange setup and coding the encryption part, HSBC provides the flexibility to skip message encryption in sandbox Environment, here is a sample call by using <code>curl</code>:</p> <pre><code class="hljs">#<span class="hljs-number">1</span> curl -X POST <span class="hljs-string">"https://devcluster.api.p2g.netd2.hsbc.com.hk/glcm-mobilecoll-mchk-ea-merchantservices-sct-proxy/v1/payment/enquiry"</span> 
+#<span class="hljs-number">2</span>  -H <span class="hljs-string">"message_encrypt: false"</span>
+#<span class="hljs-number">3</span>  -H <span class="hljs-string">"x-hsbc-client-id: 8b915a4f5b5047f091f210e2232b5ced"</span> 
+#<span class="hljs-number">4</span>  -H <span class="hljs-string">"x-hsbc-client-secret: 1bb456a541dc416dB6016B5F9583C606"</span>
+#<span class="hljs-number">5</span>  -H <span class="hljs-string">"Content-Type: application/json"</span>
+#<span class="hljs-number">6</span>  -d <span class="hljs-string">"{ <span class="hljs-subst">\"</span>txnRef<span class="hljs-subst">\"</span>: <span class="hljs-subst">\"</span>0002900F06457710500000001<span class="hljs-subst">\"</span>, <span class="hljs-subst">\"</span>merId<span class="hljs-subst">\"</span>: <span class="hljs-subst">\"</span>0002900F0645774<span class="hljs-subst">\"</span>}"</span>
+</code></pre>
+                <ol>
+                  <li>Submit Status Enquiry API using <code>POST</code> method </li>
+                  <li>Put the secret header <code>message_encrypt: false</code> to indicate this API call is without message encryption</li>
+                  <li>Put Client ID in <code>HTTP header</code></li>
+                  <li>Put Client Secret in <code>HTTP header</code></li>
+                  <li>Set <code>Content-Type</code> to JSON format</li>
+                  <li>Plain <code>json</code> message payload
+                    <ul>
+                      <li>
+                        <strong>
+                          <em>Notice: This test can be performed before Public Key exchange with HSBC.</em>
+                        </strong>
+                      </li>
+                    </ul>
+                  </li>
+                </ol>
+                <p>All response will be returned in plan <code>json</code> format.</p>
+                <p>After you complete the key exchange setup and all encryption program coding, let&#39;s go for the real thing:</p> <pre><code class="hljs"><span class="hljs-meta">#</span><span class="bash">1 curl -X POST <span class="hljs-string">"https://devcluster.api.p2g.netd2.hsbc.com.hk/glcm-mobilecoll-mchk-ea-merchantservices-sct-proxy/v1/payment/qrCode"</span> </span>
+<span class="hljs-meta">#</span><span class="bash">2  -H <span class="hljs-string">"x-hsbc-client-id: 8b915a4f5b5047f091f210e2232b5ced"</span> </span>
+<span class="hljs-meta">#</span><span class="bash">3  -H <span class="hljs-string">"x-hsbc-client-secret: 1bb456a541dc416dB6016B5F9583C606"</span> </span>
+<span class="hljs-meta">#</span><span class="bash">4  -H <span class="hljs-string">"Content-Type: application/json"</span> </span>
+<span class="hljs-meta">#</span><span class="bash">5  -d <span class="hljs-string">"eyJraWQiOiIwMDAxIiwiZW5jIjoiQTEyOEdDTSIsImFsZyI6IlJTQS1PQUVQLTI1NiJ9.MSri-81imlw3vbBQBvKNwBis-Eik37H-AN041wl25Z5O7JAKyITopgyoHTF9Lm-FY-_eMZERwucfG2Y_83EuRZt_amhPtcIVuH3vl3WFHVOSD1v8MRnwJ6CDer1kuonUSmatZ7fqwhW07WeJA-8x62BUwaGwTUa78ueV_z1p8ooAo_Trcn4H4Zu87DuqoZZX2l3zap02bofOA4yQtxvxoYc7KgV026B3BX6mCvNZwV9hgoZXmh691u2JfdSJylmQ-wdFwzzSdeXdt7PapL4ObNqO9HceTSQI8aKm7Vu14J_bfDQa3G-9Ur1dOVxEPR-RRUREfmeaye0jUrXIGdKcPQ.aTBLE83cPeHU6caa._4cqJ8SCZ8ZS0gRfWKxjbgznxQD8Y5Vs4Cj0ocj68y2H7dX0AoD_Wx8uAvnv2ax8et83N5D58K1LOxAJDpNk4k5WZgdIwQUx1NgaaU-tZUKN9Cqu4OsKDrOZTTTsLZsQrz9VTljJu8L585C9jyv2s0V1akxLnwBX85QCnICUyKRrB2y0TrJbMaOi4_rBRjayYn9lbYwg2ydTYqAd1zucp4U5cLu-pwhVXUAyB-jtY3P_s6vrnTFczp4t3FYa8RcCKsAOf6d3X7ICMhMnTZK8OWhN0oYszgDoqJRceKLnLEhUlJULy012TrnGZ0j3RLI88KQKAIpSyZb7R8bk1ZDcvp68gm1jfjRaFh-NQQVvFDG3xWAKSrSntJd3cyulBaaBMCS2RktLXGVTDpk7pEAG41SNyb20xhODrgncxIuQuaK1Xetq6UacIPfQbSyiZ-faAoJ8c8z9sXPVUZ2PEvxvUFx47Cm4XXsU3u_oHpCuYXMe6FGGZCHJNhZE8V_BlFubrd9nUleo0fs34V4zgdxTj8Oa8mBu3YHMIHojQfIu08UCpxxh-zP5eB64m_oEVrfLFBLs3BEQ2Z2byZQX6ifOcOXvpv_p3y1qRAmNIhV6NyWiL-Fbc0yao3r0tQDh5vqxvJHd3Ej-djXUhIRZI3ePWnIh7UJhjHT5y8tLPDXlm89i_eV-1xbASfd--Lj2LD8-K6kmgKSozS5KYVFCE6CXjc-ioJ4jGbgk5IeTc3tcK3Q36FZCtoVamRSq7dCEB-jzOr0rL3FDNfZ7nTbmUbPyxQzDUsjyMA1DR73QQDmFr-b-6vDrmnuPz7lAvkbwHEvCFBOMytW1nQ9cfEQEd0ihxrKtH-CwEbZrIjy_rMx8HO7-i6JQNesFs5Oqo5HQ6bfXyWXvbSbyKuS81jQlxE8AO6VCHqgj1Q6Cq8MzW7boqkoZRrBbxMMi08ZYlFYPB1xOtDFVRzZAzCTv5OKS7N9n6Pod03JPYkUV5PeQ9nn14QmuSqYc33ggpPqRFhzucS3Tbs_T4rLnix0CXf0HRIb-RGLRPKaHP8Tms7CbeWiHgrljHnOLBODK6rUgx_vkpD0vpEwCdCQrVNJXieyPYLYiM5e7tZuJR7MjNTJQn3y3FZbceQKkSAov9jAa2ghSQsJz9XPppnUcxxnYgc-Qb57HpOjUiUW7n_5TE9ZsMCVIVKkoPj38y17McSc.VCt3JwM2tFwVsgTQ90t-Aw"</span></span>
+</code></pre>
+                <ol>
+                  <li>Submit QR Code Creation API using <code>POST</code> method </li>
+                  <li>Put Client ID in <code>HTTP header</code></li>
+                  <li>Put Client Secret in <code>HTTP header</code></li>
+                  <li>Set <code>Content-Type</code> to JSON format</li>
+                  <li>Encrypted Message Payload. Please refer <code>Message Encryption</code> section for more details of Message Signing and Message Encryption.
+                    <ul>
+                      <li>
+                        <strong>
+                          <em>Notice: Public Key exchange must be taken place prior to this test.</em>
+                        </strong>
+                      </li>
+                    </ul>
+                  </li>
+                </ol>
+                <p>For a successful request (HTTP Status Code 200), an encrypted response message will be returned, otherwise, a plain <code>json</code> with failure message will be returned.</p>
+                <p>In addition, here are more supporting info you may want to know:</p>
+                <h3 id="supporting-info-">Supporting Info:</h3>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Info</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Sandbox system restart schedule</td>
+                      <td>5pm - 6pm every weekday</td>
+                    </tr>
+                    <tr>
+                      <td>DNS Configuration Lead Time for Status Notification API</td>
+                      <td>Around 1 week</td>
+                    </tr>
+                    <tr>
+                      <td>Email of Sandbox Technical Support</td>
+                      <td>
+                        <a href="mailto:glcm_api_testing_support_htsa@hsbc.com.hk">glcm_api_testing_support_htsa@hsbc.com.hk</a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <h2 id="step-4-submit-for-production">Step 4: Submit for Production</h2>
+                <p>When you finish testing, you may want to submit your app for production. If it seems like we’d be a good fit, we’ll look into it and do some testing together. Then, we’ll talk about next steps to move to production.</p>
+                <h1 id="message-encryption">Message Encryption</h1>
+                <p>Javascript Object Signing and Encryption
+                  <strong>(JOSE)</strong>, is a framework intended to provide a method to securely transfer information between parties. The JOSE framework provides a collection of specifications, including JSON Web Signature
+                  <strong>(JWS)</strong> and JSON Web Encryption
+                  <strong>(JWE)</strong>, to serve this purpose. HSBC uses JWS to sign message and JWE to encrypt the signed message. </p>
+                <p>If you want to fully understand the framework, you can read
+                  <a href="http://jose.readthedocs.io/en/latest/">here</a> for more details.</p>
+                <h2 id="sign-and-encrypt-message-before-submit-request">Sign and Encrypt Message before Submit Request</h2>
+                <p>To help you understand how to construct a Signed and Encrypted Message, let&#39;s take the Java program below as an example. Do not worry if you are not familiar with Java, the idea is to let you know the steps and all needed components:</p> <pre><code class="hljs"><span class="hljs-keyword">private</span> JWSObject signMessage(<span class="hljs-built_in">String</span> messagePayload, KeyStore ks, <span class="hljs-built_in">String</span> keyAlias, <span class="hljs-built_in">String</span> keyPw)
+              throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, JOSEException {
+            #1  Payload payload = <span class="hljs-literal">new</span> Payload(messagePayload);
+            
+            #2  JWSHeader <span class="hljs-keyword">header</span> = <span class="hljs-literal">new</span> JWSHeader.Builder(JWSAlgorithm.RS256).keyID(<span class="hljs-string">"0001"</span>).build();
+            #3  JWSObject jwsObject = <span class="hljs-literal">new</span> JWSObject(<span class="hljs-keyword">header</span>, payload);
+            
+            #4  PrivateKey privateKey = (PrivateKey) ks.getKey(keyAlias, keyPw.toCharArray());
+                JWSSigner signer = <span class="hljs-literal">new</span> RSASSASigner(privateKey);
+            #5  jwsObject.sign(signer);
+            
+                <span class="hljs-keyword">return</span> jwsObject;
+            }
+            </code></pre>
+                <ol>
+                  <li>Prepare your
+                    <strong>Message Payload</strong>, that is, the plain <code>json</code> request message</li>
+                  <li>Create
+                    <strong>JWS Header</strong> using <code>RS256</code> signing algorithm and
+                    <strong>JWS keyID</strong>, in this case, <code>0001</code></li>
+                  <li>Create
+                    <strong>JWS Object</strong> by combining JWS Header and Message Payload</li>
+                  <li>Retrieve your
+                    <strong>Private Key</strong> as the signer</li>
+                  <li>Create
+                    <strong>Signed JWS Object</strong> by signing it with the Private Key</li>
+                </ol>
+                <p>Next, you are going to
+                  <strong>Encrypt</strong> the Signed JWS Object:</p> <pre><code class="hljs"><span class="hljs-keyword">public</span> JWEObject getEncryptedJWEObject(JWSObject jwsObject, RSAPublicKey <span class="hljs-built_in">key</span>)
+              <span class="hljs-keyword">throws</span> JOSEException {
+            #<span class="hljs-number">1</span>  <span class="hljs-keyword">final</span> Payload jwepayload = <span class="hljs-keyword">new</span> Payload(jwsObject.serialize());
+            
+            #<span class="hljs-number">2</span>  <span class="hljs-keyword">final</span> JWEHeader jweheader =
+                  <span class="hljs-keyword">new</span> JWEHeader.Builder(JWEAlgorithm.RSA_OAEP_256, EncryptionMethod.A128GCM).keyID(<span class="hljs-string">"0001"</span>).build();
+            
+            #<span class="hljs-number">3</span>  <span class="hljs-keyword">final</span> JWEObject jweObject = <span class="hljs-keyword">new</span> JWEObject(jweheader, jwepayload);
+            
+            #<span class="hljs-number">4</span>  <span class="hljs-keyword">final</span> JWEEncrypter encrypter = <span class="hljs-keyword">new</span> RSAEncrypter(<span class="hljs-built_in">key</span>);
+            #<span class="hljs-number">5</span>  jweObject.encrypt(encrypter);
+            
+                <span class="hljs-keyword">return</span> jweObject;
+            }
+            </code></pre>
+                <ol>
+                  <li>Prepare your
+                    <strong>JWE Payload</strong>, that is, the <code>Signed JWS Object</code></li>
+                  <li>Create
+                    <strong>JWE Header</strong>. The algorithm used to encrypt the message body is <code>A128GCM</code> while the algorithm used to encrypt the encryption key is <code>RSA_OAEP_256</code>.
+                    <strong>JWE keyID</strong> is <code>0001</code> again.</li>
+                  <li>Create
+                    <strong>JWE Object</strong> by combining JWE Header and JWE Payload</li>
+                  <li>Retrieve
+                    <strong>HSBC&#39;s Public Key</strong> as the encrypter</li>
+                  <li>Create
+                    <strong>Encrypted JWE Object</strong> by encrypted it with HSBC&#39;s Public Key</li>
+                </ol>
+                <p>Yes, you are now ready to put the Encrypted JWE Object as the message body
+                  <em>(you may need to first serialize it into String format, depends on your program code design)</em> of any API call. </p>
+                <h2 id="decrypt-message-and-verify-signature-after-receive-response">Decrypt Message and Verify Signature after Receive Response</h2>
+                <p>Let&#39;s look into the following example to see how you decrypt a response message from HSBC:</p> <pre><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-built_in">String</span> decryptMessage(<span class="hljs-built_in">String</span> respMsgPayload, KeyStoreFactory keyStore)
+              throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, 
+              java.text.ParseException, UnrecoverableKeyException, JOSEException {
+            #1  JWEObject jweObject = JWEObject.parse(respMsgPayload);
+            
+            #2  PrivateKey privateKey = (PrivateKey) keyStore.getPrivateKey(<span class="hljs-string">"merchant_private_key_alias"</span>);
+            
+                JWEDecrypter decrypter = <span class="hljs-literal">new</span> RSADecrypter(privateKey);
+            #3  jweObject.decrypt(decrypter);
+            
+            #4  <span class="hljs-built_in">String</span> signedMessage = jweObject.getPayload().toString();
+                <span class="hljs-keyword">return</span> signedMessage;
+            }
+            </code></pre>
+                <ol>
+                  <li>Create
+                    <strong>Encrypted JWE Object</strong> by parsing the encrypted response message payload</li>
+                  <li>Retrieve
+                    <strong>Private Key</strong> as the decrypter</li>
+                  <li>Decrypt the JWE Object using your Private Key</li>
+                  <li>Get the
+                    <strong>Signed Message</strong> from the decrypted JWE Object</li>
+                </ol>
+                <p>You are now able to extract the plain <code>json</code> message. Yet, before that, you
+                  <strong>must</strong> verify the signature to guarantee data integrity.</p> <pre><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">String</span> verifySignature(<span class="hljs-keyword">String</span> signedMessage, KeyStore ks, <span class="hljs-keyword">String</span> keyAlias)
+              throws KeyStoreException, JOSEException, ParseException {
+            <span class="hljs-meta">#1  JWSObject jwsObject = JWSObject.parse(signedMessage);</span>
+            
+                Certificate certificate = ks.getCertificate(keyAlias);
+            <span class="hljs-meta">#2  JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) certificate.getPublicKey());</span>
+            
+            <span class="hljs-meta">#3  <span class="hljs-meta-keyword">if</span> (!jwsObject.verify(verifier)) {</span>
+                  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-type">ValidationException</span>(<span class="hljs-string">"Invalid Signature"</span>);
+                }
+            <span class="hljs-meta">#4  return jwsObject.getPayload().toString();</span>
+            }
+            </code></pre>
+                <ol>
+                  <li>Create
+                    <strong>JWS Object</strong> by parsing the <code>Signed Message</code></li>
+                  <li>Retrieve
+                    <strong>HSBC’s Public Key</strong> as the verifier</li>
+                  <li>Verify the signed JWS Object. Invoke error handling if invalid signature found
+                    <em>(depends on your code design)</em>
+                  </li>
+                  <li>Get the plain <code>json</code> message for further actions</li>
+                </ol>
+                <p>Finally, please find the following
+                  <strong>JOSE libraries</strong> of different programming languages for your reference:</p>
+                <ul>
+                  <li>
+                    <a href="https://github.com/potatosalad/ruby-jose">Ruby</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/mpdavis/python-jose">Python</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/nov/jose-php">PHP</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/gesellix/Nimbus-JOSE-JWT">Java</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/cisco/node-jose">Node</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/airsidemobile/JOSESwift">Swift</a>
+                  </li>
+                </ul>
+                <h1 id="key-renewal">Key Renewal</h1>
+                <p>For security purposes, Merchant is required to renew <code>Public Certificate</code> every
+                  <strong>two</strong> years. Please see the renewal flow for reference:</p> <pre><code class="hljs"><span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">img</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"images/key_renewal.png"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+</code></pre>
+                <ol>
+                  <li>HSBC to send
+                    <strong>email alert</strong> to Merchant before the original Public Certificate
+                    <em>(in this example, with keyID <code>0001</code>)</em> is about to expire, usually
+                    <strong>90 days</strong> in prior to expiry</li>
+                  <li>Merchant to renew or purchase new Certificate with, recommended
+                    <strong>2 years validity</strong>
+                  </li>
+                  <li>Merchant to contact
+                    <strong>HSBC GLCM support</strong> to arrange sending Certificate</li>
+                  <li>HSBC to import new Merchant&#39;s Public Certificate. To facilitate a seamless key renewal, the original and new Certificate can
+                    <strong>coexist</strong> in HSBC system. HSBC system can detemine which Certificate to be used by extracting the
+                    <strong>keyID inside Merchant&#39;s request message</strong>. </li>
+                  <li>HSBC to notify Merchant when the new Certificate is ready</li>
+                  <li>Merchant to change their App with new keyID <code>0002</code> during JWS/JWE creation</li>
+                  <li>Merchant to send encrypted API request with keyID <code>0002</code></li>
+                  <li>HSBC to extract keyID from JWS/JWE then pair with the corresponding key during signature verification</li>
+                </ol>
+                <h1 id="qr-code-image-creation">QR Code Image Creation</h1>
+                <p>After receiving QR Code token from API call, Merchant is required to generate QR Code image. Merchant is free to choose any compatible QR Code image creation libraries from the internet. To facilitate frontend development, a few resources from the internet of creating QR Code image can be shared here:</p>
+                <ul>
+                  <li>
+                    <a href="https://www.nayuki.io/page/qr-code-generator-library">Project Nayuki</a>
+                  </li>
+                  <li>
+                    <a href="https://crunchify.com/java-simple-qr-code-generator-example/">CrunchifyQRCode (Java)</a>
+                  </li>
+                </ul>
+                <h1 id="faq">FAQ</h1>
+                <h2 id="ssl-connection-questions">SSL Connection Questions</h2>
+                <h3 id="where-can-i-find-hsbc-ssl-server-certificates-">Where can I find HSBC SSL server certificates?</h3>
+                <p>Merchant developer is able to export SSL server certificates that has been installed in your broswer. By doing this, visit the
+                  <strong>domain</strong> of the corresponding API endpoint in your broswer. For example, to get the SSL certificate of sandbox environment, use domain name
+                  <a href="https://devcluster.api.p2g.netd2.hsbc.com.hk/">https://devcluster.api.p2g.netd2.hsbc.com.hk/</a>
+                </p>
+                <p>However,
+                  <strong>in production</strong>, we will provide a certificate and require TLS 1.2 implementation.</p>
+                <h2 id="message-encryption-questions">Message Encryption Questions</h2>
+                <h3 id="what-certificates-will-i-need-to-work-for-message-encryption-in-hsbc-s-sandbox-and-production-environments-">What certificates will I need to work for Message Encryption in HSBC&#39;s sandbox and production environments?</h3>
+                <p>A self-sign certificate is accepted in sandbox environment. In production, Merchant is required to procure a public certificate from an authorized CA.</p>
+                <h2 id="rest-api-questions">REST API Questions</h2>
+                <h3 id="should-i-pass-empty-strings-for-optional-values-">Should I pass empty strings for optional values?</h3>
+                <p>If you don&#39;t want to pass fields that are optional, your handler should not pass neither empty strings <code>{&quot;example&quot;:&quot;&quot;}</code> nor blank value <code>{&quot;example&quot;:&quot;   &quot;}</code>.</p>
+                <h3 id="can-i-pass-symbols-to-field-whose-data-type-is-string-">Can I pass symbols to field whose data type is String?</h3>
+                <p>Yes, the data type <code>String</code> we use in our API spec allows AlphaNumeric and symbols. HSBC system will execute characters checking upon all fields we received in order to tackle security vulnerability, such as Cross-site Scripting. Yet, we recommend you to try use AlphaNumeric only for most cases.</p>
+                <h3 id="do-you-have-sample-or-reference-applications-that-could-demonstrate-some-api-calls-for-me-">Do you have sample or reference applications that could demonstrate some API calls for me?</h3>
+                <p>We are preparing SDKs in a few different programming languages, like Java, PHP and C#. Stay tuned with our HSBC GLCM support team.</p>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>API Endpoint</h5>
+                  <!-- <div class="hljs"> --><pre><code>https://rbwm-api.hsbc.com.hk/glcm-mobilecoll-mchk-ea-merchantservices-prod-proxy/v1</code></pre>
+                  <!-- </div> -->
+                  <h5>Schemes:
+                    <span>https</span>
+                  </h5>
+                  <h5>Version:
+                    <span>1.13</span>
+                  </h5>
+                </section>
+              </div>
+            </div>
+          </div>
+          <!-- <h1 id="security" data-traverse-target="security">Security</h1> -->
+          <h1 id="authentication" data-traverse-target="authentication">Authentication</h1>
+          <div id="security-definition-Client ID" class="panel">
+            <div class="doc-row">
+              <div class="doc-copy">
+                <h3 class="security-definition-title">
+                  <span class="security-name">Client ID</span>
+                  <span class="swagger-security-definition-apiKey"></span>
+                </h3>
+                <section class="swagger-security-definition-properties">
+                  <div class="prop-row security-definition-property">
+                    <div class="prop-name">
+                      <div class="prop-title security-definition-property-name">type</div>
+                    </div>
+                    <div class="prop-value security-definition-property-type"> apiKey </div>
+                  </div>
+                  <div class="prop-row security-definition-property">
+                    <div class="prop-name">
+                      <div class="prop-title security-definition-property-name">name</div>
+                    </div>
+                    <div class="prop-value security-definition-property-type"> x-hsbc-client-id </div>
+                  </div>
+                  <div class="prop-row security-definition-property">
+                    <div class="prop-name">
+                      <div class="prop-title security-definition-property-name">in</div>
+                    </div>
+                    <div class="prop-value security-definition-property-type"> header </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="security-definition-Client Secret" class="panel">
+            <div class="doc-row">
+              <div class="doc-copy">
+                <h3 class="security-definition-title">
+                  <span class="security-name">Client Secret</span>
+                  <span class="swagger-security-definition-apiKey"></span>
+                </h3>
+                <section class="swagger-security-definition-properties">
+                  <div class="prop-row security-definition-property">
+                    <div class="prop-name">
+                      <div class="prop-title security-definition-property-name">type</div>
+                    </div>
+                    <div class="prop-value security-definition-property-type"> apiKey </div>
+                  </div>
+                  <div class="prop-row security-definition-property">
+                    <div class="prop-name">
+                      <div class="prop-title security-definition-property-name">name</div>
+                    </div>
+                    <div class="prop-value security-definition-property-type"> x-hsbc-client-secret </div>
+                  </div>
+                  <div class="prop-row security-definition-property">
+                    <div class="prop-name">
+                      <div class="prop-title security-definition-property-name">in</div>
+                    </div>
+                    <div class="prop-value security-definition-property-type"> header </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <h1 id="tag-Inbound-API" class="swagger-summary-tag" data-traverse-target="tag-Inbound-API">Inbound API</h1>
+          <div class="tag-description doc-row">
+            <div class="doc-copy">
+              <p>Request submitted from Merchant to HSBC</p>
+            </div>
+          </div>
+          <div id="operation--payment-qrCode-post" class="operation panel" data-traverse-target="operation--payment-qrCode-post">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-Inbound-API">Inbound API</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Payment QR Code Creation API</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">POST</span>
+                  <span class="operation-path">/payment/qrCode</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>This API creates QR Code token with the aim of making payment. Once this API request is submitted from merchants, HSBC payment platform will return QR Code token to Merchant regarding to the Common QR code specification. Merchant then displays the QR Code to Buyer, who scans and enters further information to complete the payment.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body">
+                  <div class="prop-row">
+                    <div class="prop-name">
+                      <div class="swagger-request-model">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/qrCodeRequestModel">qrCodeRequestModel</a>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="prop-value columns small-6">
+                      <!-- <div class="swagger-request-description"> -->
+                      <p>The message body
+                        <strong>MUST</strong> be signed by using JSON Web Signature (JWS) standard and encrypted using JSON Web Encryption (JWE) standard before sending out.
+                        <strong>
+                          <em>[Requirement is covered in the Message Encryption section]</em>
+                        </strong> The following API model only aims to demonstrate the skeleton of the message payload.</p>
+                      <!-- </div> -->
+                    </div>
+                  </div>
+                </section>
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">Content-Type</div>
+                      <span class="json-property-required"></span>
+                      <div class="prop-subtitle"> in header </div>
+                      <div class="prop-subtitle">
+                        <span class="json-property-type">string</span>
+                        <span class="json-property-range" title="Value limits"></span>
+                      </div>
+                    </div>
+                    <div class="prop-value">
+                      <p>application/json</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Request Content-Types:
+                    <span>application/json</span>
+                  </h5>
+                  <h5>Request Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;merId&quot;</span>: <span class="hljs-string">&quot;0002900F0645774&quot;</span>,
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;txnChannel&quot;</span>: <span class="hljs-string">&quot;01&quot;</span>,
+  <span class="hljs-attr">&quot;txnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T14:10:25Z&quot;</span>,
+  <span class="hljs-attr">&quot;merTimeout&quot;</span>: <span class="hljs-number">1440</span>,
+  <span class="hljs-attr">&quot;payMethod&quot;</span>: [
+    <span class="hljs-string">&quot;HKFPS&quot;</span>
+  ],
+  <span class="hljs-attr">&quot;country&quot;</span>: <span class="hljs-string">&quot;HK&quot;</span>,
+  <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;HKD&quot;</span>,
+  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+  <span class="hljs-attr">&quot;notifyUrl&quot;</span>: <span class="hljs-string">&quot;https://merchant.com/returnStatus&quot;</span>,
+  <span class="hljs-attr">&quot;goodsDes&quot;</span>: <span class="hljs-string">&quot;Description of goods.&quot;</span>,
+  <span class="hljs-attr">&quot;posMachineId&quot;</span>: <span class="hljs-string">&quot;00112233-4455-6677-8899-aabbccddeeff&quot;</span>,
+  <span class="hljs-attr">&quot;employeeId&quot;</span>: <span class="hljs-string">&quot;00112233-4455-6677-8899-xxyyzzxxyyzz&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/qrCodeResponseModel">qrCodeResponseModel</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Successful operation.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">400 Bad Request</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/exceptionModel">exceptionModel</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Bad Request.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">403 Forbidden</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Authorization credentials are missing or invalid.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">404 Not Found</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Empty resource/resource not found.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">500 Internal Server Error</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>The request failed due to an internal error.</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <h5>Response Content-Types:
+                  <span>application/json</span>
+                </h5>
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;api_gw&quot;</span>: {
+    <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+    <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+    <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+    <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+    <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+  },
+  <span class="hljs-attr">&quot;response&quot;</span>: {
+    <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+    <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+    <span class="hljs-attr">&quot;qrCode&quot;</span>: <span class="hljs-string">&quot;QR_CODE_TOKEN&quot;</span>,
+    <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+    <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;HKD&quot;</span>,
+    <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Transaction Successful&quot;</span>
+  }
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(400 Bad Request)</span>
+                  </h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;api_gw&quot;</span>: {
+    <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+    <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+    <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+    <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+    <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+  }
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-security">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th class="swagger-request-security-schema"></th>
+                        <th class="swagger-request-security-scopes"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-Client ID">Client ID</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-Client Secret">Client Secret</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation--payment-enquiry-post" class="operation panel" data-traverse-target="operation--payment-enquiry-post">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-Inbound-API">Inbound API</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Payment Status Enquiry API</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">POST</span>
+                  <span class="operation-path">/payment/enquiry</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Merchant can initiate payment status enquiry at any time after a payment request is submitted. HSBC payment platform will return the latest transaction status according to the transaction ID Merchant provided.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body">
+                  <div class="prop-row">
+                    <div class="prop-name">
+                      <div class="swagger-request-model">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/txnEnqRequestModel">txnEnqRequestModel</a>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="prop-value columns small-6">
+                      <!-- <div class="swagger-request-description"> -->
+                      <p>The message body
+                        <strong>MUST</strong> be signed by using JSON Web Signature (JWS) standard and encrypted using JSON Web Encryption (JWE) standard before sending out.
+                        <strong>
+                          <em>[Requirement is covered in the Message Encryption section]</em>
+                        </strong> The following API model only aims to demonstrate the skeleton of the message payload.</p>
+                      <!-- </div> -->
+                    </div>
+                  </div>
+                </section>
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">Content-Type</div>
+                      <span class="json-property-required"></span>
+                      <div class="prop-subtitle"> in header </div>
+                      <div class="prop-subtitle">
+                        <span class="json-property-type">string</span>
+                        <span class="json-property-range" title="Value limits"></span>
+                      </div>
+                    </div>
+                    <div class="prop-value">
+                      <p>application/json</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Request Content-Types:
+                    <span>application/json</span>
+                  </h5>
+                  <h5>Request Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;merId&quot;</span>: <span class="hljs-string">&quot;0002900F0645774&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/txnEnqResponseModel">txnEnqResponseModel</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Successful operation.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">400 Bad Request</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/exceptionModel">exceptionModel</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Bad Request.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">403 Forbidden</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Authorization credentials are missing or invalid.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">404 Not Found</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Empty resource/resource not found.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">500 Internal Server Error</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>The request failed due to an internal error.</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <h5>Response Content-Types:
+                  <span>application/json</span>
+                </h5>
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;api_gw&quot;</span>: {
+    <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+    <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+    <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+    <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+    <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+  },
+  <span class="hljs-attr">&quot;response&quot;</span>: {
+    <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+    <span class="hljs-attr">&quot;arrayOfSubAmt&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;bankTxnId&quot;</span>: <span class="hljs-string">&quot;T18050209732&quot;</span>,
+        <span class="hljs-attr">&quot;bankTxnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T14:10:25Z&quot;</span>,
+        <span class="hljs-attr">&quot;subAmtPaid&quot;</span>: <span class="hljs-number">1050</span>
+      },
+      {
+        <span class="hljs-attr">&quot;bankTxnId&quot;</span>: <span class="hljs-string">&quot;T18050205768&quot;</span>,
+        <span class="hljs-attr">&quot;bankTxnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T15:11:12Z&quot;</span>,
+        <span class="hljs-attr">&quot;subAmtPaid&quot;</span>: <span class="hljs-number">1050</span>
+      }
+    ],
+    <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+    <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;HKD&quot;</span>,
+    <span class="hljs-attr">&quot;totalAmtPaid&quot;</span>: <span class="hljs-number">2100</span>,
+    <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Payment Success&quot;</span>
+  }
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(400 Bad Request)</span>
+                  </h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;api_gw&quot;</span>: {
+    <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+    <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+    <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+    <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+    <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+  }
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-security">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th class="swagger-request-security-schema"></th>
+                        <th class="swagger-request-security-scopes"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-Client ID">Client ID</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-Client Secret">Client Secret</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </div>
+          </div>
+          <h1 id="tag-Outbound-API" class="swagger-summary-tag" data-traverse-target="tag-Outbound-API">Outbound API</h1>
+          <div class="tag-description doc-row">
+            <div class="doc-copy">
+              <p>Request submitted from HSBC to Merchant</p>
+            </div>
+          </div>
+          <div id="operation---Client_Defined_Endpoint--post" class="operation panel" data-traverse-target="operation---Client_Defined_Endpoint--post">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-Outbound-API">Outbound API</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Payment Status Notification API</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">POST</span>
+                  <span class="operation-path">/&lt;Client_Defined_Endpoint&gt;</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Payment status will be returned to Merchant by asynchronous callback once HSBC receives a payment request. After HSBC payment platform completes reconciliation with HKFPS and receives payment result, HSBC will push the result back to Merchant by calling this API.</p>
+                  <blockquote>
+                    <p>
+                      <strong>Implementation</strong> HSBC will trigger this API call and defines the interface with OpenAPI standard. Merchant is required to provide implementation.</p>
+                  </blockquote>
+                  <blockquote>
+                    <p>
+                      <strong>Retry Mechanism</strong> If no success response is received, up to 4 retries will be triggered in every 2 minutes. Maximum 5 calls including the 1st attempt.</p>
+                  </blockquote>
+                  <blockquote>
+                    <p>
+                      <strong>Endpoint Definition</strong> Field <code>notifyUrl</code> from Payment Request API will be used as URL endpoint of the corresponding transaction.</p>
+                  </blockquote>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body">
+                  <div class="prop-row">
+                    <div class="prop-name">
+                      <div class="swagger-request-model">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/statusReturnRequestModel">statusReturnRequestModel</a>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="prop-value columns small-6">
+                      <!-- <div class="swagger-request-description"> -->
+                      <p>The message body
+                        <strong>MUST</strong> be signed by using JSON Web Signature (JWS) standard and encrypted using JSON Web Encryption (JWE) standard before sending out.
+                        <strong>
+                          <em>[Requirement is covered in the Message Encryption section]</em>
+                        </strong> The following API model only aims to demonstrate the skeleton of the message payload.</p>
+                      <!-- </div> -->
+                    </div>
+                  </div>
+                </section>
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">Content-Type</div>
+                      <span class="json-property-required"></span>
+                      <div class="prop-subtitle"> in header </div>
+                      <div class="prop-subtitle">
+                        <span class="json-property-type">string</span>
+                        <span class="json-property-range" title="Value limits"></span>
+                      </div>
+                    </div>
+                    <div class="prop-value">
+                      <p>application/json</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Request Content-Types:
+                    <span>application/json</span>
+                  </h5>
+                  <h5>Request Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;merId&quot;</span>: <span class="hljs-string">&quot;0002900F0645774&quot;</span>,
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;HKD&quot;</span>,
+  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+  <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+  <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Transaction Successful&quot;</span>,
+  <span class="hljs-attr">&quot;bankTxnId&quot;</span>: <span class="hljs-string">&quot;T18050209732&quot;</span>,
+  <span class="hljs-attr">&quot;bankTxnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T14:10:25Z&quot;</span>,
+  <span class="hljs-attr">&quot;debtorName&quot;</span>: <span class="hljs-string">&quot;Chan Siu Ming&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/statusReturnResponseModel">statusReturnResponseModel</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Status 200</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <h5>Response Content-Types:
+                  <span>application/json</span>
+                </h5>
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;status&quot;</span>: <span class="hljs-string">&quot;SUCCESS&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <h1 id="tag-Simulation-API" class="swagger-summary-tag" data-traverse-target="tag-Simulation-API">Simulation API</h1>
+          <div class="tag-description doc-row">
+            <div class="doc-copy">
+              <p>Request submitted from Merchant to simulate a payment</p>
+            </div>
+          </div>
+          <div id="operation--payment-simulation-post" class="operation panel" data-traverse-target="operation--payment-simulation-post">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-Simulation-API">Simulation API</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Payment Simulation API</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">POST</span>
+                  <span class="operation-path">/payment/simulation</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>During client system development, Merchant can call this API to simulate a payment of buyer. This API is only available in sandbox environment. For details, please refer to Getting Started section.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body">
+                  <div class="prop-row">
+                    <div class="prop-name">
+                      <div class="swagger-request-model">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/paySimRequestModel">paySimRequestModel</a>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="prop-value columns small-6">
+                      <!-- <div class="swagger-request-description"> -->
+                      <p>Message Encryption is not needed for this message payload</p>
+                      <!-- </div> -->
+                    </div>
+                  </div>
+                </section>
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">Content-Type</div>
+                      <span class="json-property-required"></span>
+                      <div class="prop-subtitle"> in header </div>
+                      <div class="prop-subtitle">
+                        <span class="json-property-type">string</span>
+                        <span class="json-property-range" title="Value limits"></span>
+                      </div>
+                    </div>
+                    <div class="prop-value">
+                      <p>application/json</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Request Content-Types:
+                    <span>application/json</span>
+                  </h5>
+                  <h5>Request Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;merId&quot;</span>: <span class="hljs-string">&quot;0002900F0645774&quot;</span>,
+  <span class="hljs-attr">&quot;is_notification_encrypted&quot;</span>: <span class="hljs-string">&quot;Y&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/paySimResponseModel">paySimResponseModel</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Successful operation.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">400 Bad Request</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/exceptionModel">exceptionModel</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Bad Request.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">403 Forbidden</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Authorization credentials are missing or invalid.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">404 Not Found</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Empty resource/resource not found.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">500 Internal Server Error</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>The request failed due to an internal error.</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <h5>Response Content-Types:
+                  <span>application/json</span>
+                </h5>
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;api_gw&quot;</span>: {
+    <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+    <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+    <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+    <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+    <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+  },
+  <span class="hljs-attr">&quot;response&quot;</span>: {
+    <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+    <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+    <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Payment Success&quot;</span>
+  }
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(400 Bad Request)</span>
+                  </h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;api_gw&quot;</span>: {
+    <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+    <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+    <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+    <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+    <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+  }
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-security">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th class="swagger-request-security-schema"></th>
+                        <th class="swagger-request-security-scopes"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-Client ID">Client ID</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-Client Secret">Client Secret</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </div>
+          </div>
+          <h1>Schema Definitions</h1>
+          <div id="definition-subAmountObj" class="definition panel" data-traverse-target="definition-subAmountObj">
+            <h2 class="panel-title">
+              <a name="/definitions/subAmountObj"></a>subAmountObj: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="bankTxnId" class="has-description">
+                      <span class="json-property-name">bankTxnId:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 35 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>HSBC transaction reference id for the inward credit payment </p>
+                      <ul>
+                        <li>Conditional Field: If field &quot;totalAmtPaid&quot; is in place</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="bankTxnTime" class="has-description">
+                      <span class="json-property-name">bankTxnTime:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 20 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>HSBC Transaction time for the inward credit payment</p>
+                      <ul>
+                        <li>HSBC system local time. Format： yyyy-MM-dd&#39;T&#39;HH:mm:ssZ</li>
+                        <li>Conditional Field: If field &quot;totalAmtPaid&quot; is in place</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="subAmtPaid" class="has-description">
+                      <span class="json-property-name">subAmtPaid:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">1 ≤ x ≤ 999999999999</span>
+                    </dt>
+                    <dd>
+                      <p>Amount of money paid by payer per payment submission </p>
+                      <ul>
+                        <li>Format: Eliminate punctuation and sign, support 2 decimal places, e.g. $10.50 = 1050</li>
+                        <li>Conditional Field: If field &quot;totalAmtPaid&quot; is in place</li>
+                      </ul>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;bankTxnId&quot;</span>: <span class="hljs-string">&quot;T18050209732&quot;</span>,
+  <span class="hljs-attr">&quot;bankTxnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T14:10:25Z&quot;</span>,
+  <span class="hljs-attr">&quot;subAmtPaid&quot;</span>: <span class="hljs-number">1050</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-commonRespObj" class="definition panel" data-traverse-target="definition-commonRespObj">
+            <h2 class="panel-title">
+              <a name="/definitions/commonRespObj"></a>commonRespObj: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="messageId" class="has-description">
+                      <span class="json-property-name">messageId:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 36 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>System generated unique message ID only for HSBC internal reference use</p>
+                    </dd>
+                    <dt data-property-name="returnCode" class="has-description">
+                      <span class="json-property-name">returnCode:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 3 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>System Return Code</p>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Possible Value</th>
+                            <th>Definition</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>200</td>
+                            <td>Successful operation</td>
+                          </tr>
+                          <tr>
+                            <td>400</td>
+                            <td>Bad Request</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </dd>
+                    <dt data-property-name="returnReason" class="has-description">
+                      <span class="json-property-name">returnReason:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 20 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Corresponding Text message of returnCode</p>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Definition</th>
+                            <th>Message Example</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Successful operation</td>
+                            <td>Successful operation</td>
+                          </tr>
+                          <tr>
+                            <td>Bad Request</td>
+                            <td>Field &quot;txnRef&quot; is missing or invalid</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </dd>
+                    <dt data-property-name="sentTime" class="has-description">
+                      <span class="json-property-name">sentTime:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 27 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Time of request received by HSBC system from client, only for HSBC internal reference use</p>
+                    </dd>
+                    <dt data-property-name="responseTime" class="has-description">
+                      <span class="json-property-name">responseTime:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 27 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Time of HSBC system provides response to client, only for HSBC internal reference use</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+  <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+  <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+  <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+  <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-exceptionModel" class="definition panel" data-traverse-target="definition-exceptionModel">
+            <h2 class="panel-title">
+              <a name="/definitions/exceptionModel"></a>exceptionModel: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="api_gw">
+                      <span class="json-property-name">api_gw:</span>
+                      <span class="json-property-type">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/commonRespObj">commonRespObj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;api_gw&quot;</span>: {
+    <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+    <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+    <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+    <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+    <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+  }
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-qrCodeRequestModel" class="definition panel" data-traverse-target="definition-qrCodeRequestModel">
+            <h2 class="panel-title">
+              <a name="/definitions/qrCodeRequestModel"></a>qrCodeRequestModel: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="merId" class="has-description">
+                      <span class="json-property-name">merId:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 15 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Merchant ID</p>
+                      <ul>
+                        <li>Distributed by HSBC to merchant for identifying each merchant&#39;s identity </li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="txnRef" class="has-description">
+                      <span class="json-property-name">txnRef:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 25 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Unique ID referred to a specific transaction </p>
+                      <ul>
+                        <li>Required Merchant to generate a unique ID for each transaction in alphanumeric format with up to a maximum of 25 characters</li>
+                        <li>A uniqueness checking will be taken place based on EACH merId</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="txnChannel" class="has-description">
+                      <span class="json-property-name">txnChannel:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">01</span>,
+                        <span class="json-property-enum-item">02</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 2 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Transaction Channel</p>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Possible Value</th>
+                            <th>Definition</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>01</td>
+                            <td>POS</td>
+                          </tr>
+                          <tr>
+                            <td>02</td>
+                            <td>e-Commerce / m-Commerce</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </dd>
+                    <dt data-property-name="txnTime" class="has-description">
+                      <span class="json-property-name">txnTime:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 20 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Time of sending out this request transaction</p>
+                      <ul>
+                        <li>Client system time. Format： yyyy-MM-dd&#39;T&#39;HH:mm:ssZ</li>
+                        <li>Time zone is determined by field &quot;country&quot;</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="merTimeout" class="has-description">
+                      <span class="json-property-name">merTimeout:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">0 ≤ x ≤ 9999</span>
+                    </dt>
+                    <dd>
+                      <p>Merchant Time-out Period</p>
+                      <ul>
+                        <li>For dynamic QR code, a merchant may specify the latest time which the merchant system will wait for the payment. The merchant will not process the relevant transaction if the settlement confirmation is received after the specified time-out time and this will result a return of funds from the merchant.</li>
+                        <li>Specify in minutes (i.e. 2 for 2 mins, and 1440 for 1 day, and 9999 for around 7 days, i.e. 1 week)</li>
+                        <li>The time period will be incremented at the time when HSBC system receives this API request</li>
+                        <li>If this field is not provided, or value = 0, it means no time-out will be specified in the generated QR code</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="payMethod" class="has-description">
+                      <span class="json-property-name">payMethod:</span>
+                      <span class="json-property-type">string[]</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Payment Method</p>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Possible Value</th>
+                            <th>Definition</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>HKFPS</td>
+                            <td>HK Faster Payments System</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <ul>
+                        <li>Multiple Payment Method will be supported in later version.</li>
+                      </ul>
+                    </dd>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">string</span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                    <dt data-property-name="country" class="has-description">
+                      <span class="json-property-name">country:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">HK</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 2 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Country Code</p>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Possible Value</th>
+                            <th>Definition</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>HK</td>
+                            <td>Hong Kong (Format: ISO alpha-2)</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </dd>
+                    <dt data-property-name="currency" class="has-description">
+                      <span class="json-property-name">currency:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">HKD</span>,
+                        <span class="json-property-enum-item">CNY</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 3 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Payment Currency</p>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Possible Value</th>
+                            <th>Definition</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>HKD</td>
+                            <td>Hong Kong dollar</td>
+                          </tr>
+                          <tr>
+                            <td>CNY</td>
+                            <td>Renminbi</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <ul>
+                        <li>Format: ISO 4217 Alpha</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="amount" class="has-description">
+                      <span class="json-property-name">amount:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">1 ≤ x ≤ 999999999999</span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Payment Amount </p>
+                      <ul>
+                        <li>Format: Eliminate punctuation and sign, support 2 decimal places according to ISO 4217, e.g. $10.50 = 1050</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="notifyUrl" class="has-description">
+                      <span class="json-property-name">notifyUrl:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 128 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>URL provided by Merchant for returning status used by Payment Status Notification API</p>
+                    </dd>
+                    <dt data-property-name="goodsDes" class="has-description">
+                      <span class="json-property-name">goodsDes:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 128 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>Description of goods. Optional field.</p>
+                    </dd>
+                    <dt data-property-name="posMachineId" class="has-description">
+                      <span class="json-property-name">posMachineId:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 36 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>Unique ID of a POS device. Conditional field. Required when txnChannel = &quot;01&quot;</p>
+                    </dd>
+                    <dt data-property-name="employeeId" class="has-description">
+                      <span class="json-property-name">employeeId:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 36 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>ID of a staff member who handles a specific POS transaction. Conditional field. Required when txnChannel = &quot;01&quot;</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;merId&quot;</span>: <span class="hljs-string">&quot;0002900F0645774&quot;</span>,
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;txnChannel&quot;</span>: <span class="hljs-string">&quot;01&quot;</span>,
+  <span class="hljs-attr">&quot;txnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T14:10:25Z&quot;</span>,
+  <span class="hljs-attr">&quot;merTimeout&quot;</span>: <span class="hljs-number">1440</span>,
+  <span class="hljs-attr">&quot;payMethod&quot;</span>: [
+    <span class="hljs-string">&quot;HKFPS&quot;</span>
+  ],
+  <span class="hljs-attr">&quot;country&quot;</span>: <span class="hljs-string">&quot;HK&quot;</span>,
+  <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;HKD&quot;</span>,
+  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+  <span class="hljs-attr">&quot;notifyUrl&quot;</span>: <span class="hljs-string">&quot;https://merchant.com/returnStatus&quot;</span>,
+  <span class="hljs-attr">&quot;goodsDes&quot;</span>: <span class="hljs-string">&quot;Description of goods.&quot;</span>,
+  <span class="hljs-attr">&quot;posMachineId&quot;</span>: <span class="hljs-string">&quot;00112233-4455-6677-8899-aabbccddeeff&quot;</span>,
+  <span class="hljs-attr">&quot;employeeId&quot;</span>: <span class="hljs-string">&quot;00112233-4455-6677-8899-xxyyzzxxyyzz&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-qrCodeResponseModel" class="definition panel" data-traverse-target="definition-qrCodeResponseModel">
+            <h2 class="panel-title">
+              <a name="/definitions/qrCodeResponseModel"></a>qrCodeResponseModel: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="api_gw">
+                      <span class="json-property-name">api_gw:</span>
+                      <span class="json-property-type">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/commonRespObj">commonRespObj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dt data-property-name="response">
+                      <span class="json-property-name">response:</span>
+                      <span class="json-property-type">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/qrCodeResponseModel_response">qrCodeResponseModel_response</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;api_gw&quot;</span>: {
+    <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+    <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+    <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+    <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+    <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+  },
+  <span class="hljs-attr">&quot;response&quot;</span>: {
+    <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+    <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+    <span class="hljs-attr">&quot;qrCode&quot;</span>: <span class="hljs-string">&quot;QR_CODE_TOKEN&quot;</span>,
+    <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+    <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;HKD&quot;</span>,
+    <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Transaction Successful&quot;</span>
+  }
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-txnEnqRequestModel" class="definition panel" data-traverse-target="definition-txnEnqRequestModel">
+            <h2 class="panel-title">
+              <a name="/definitions/txnEnqRequestModel"></a>txnEnqRequestModel: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="txnRef" class="has-description">
+                      <span class="json-property-name">txnRef:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 25 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Merchant to provide transaction ID that referred to a specific transaction</p>
+                    </dd>
+                    <dt data-property-name="merId" class="has-description">
+                      <span class="json-property-name">merId:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 15 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Merchant to provide Merchant ID for identification</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;merId&quot;</span>: <span class="hljs-string">&quot;0002900F0645774&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-txnEnqResponseModel" class="definition panel" data-traverse-target="definition-txnEnqResponseModel">
+            <h2 class="panel-title">
+              <a name="/definitions/txnEnqResponseModel"></a>txnEnqResponseModel: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="api_gw">
+                      <span class="json-property-name">api_gw:</span>
+                      <span class="json-property-type">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/commonRespObj">commonRespObj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dt data-property-name="response">
+                      <span class="json-property-name">response:</span>
+                      <span class="json-property-type">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/txnEnqResponseModel_response">txnEnqResponseModel_response</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;api_gw&quot;</span>: {
+    <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+    <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+    <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+    <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+    <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+  },
+  <span class="hljs-attr">&quot;response&quot;</span>: {
+    <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+    <span class="hljs-attr">&quot;arrayOfSubAmt&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;bankTxnId&quot;</span>: <span class="hljs-string">&quot;T18050209732&quot;</span>,
+        <span class="hljs-attr">&quot;bankTxnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T14:10:25Z&quot;</span>,
+        <span class="hljs-attr">&quot;subAmtPaid&quot;</span>: <span class="hljs-number">1050</span>
+      },
+      {
+        <span class="hljs-attr">&quot;bankTxnId&quot;</span>: <span class="hljs-string">&quot;T18050205768&quot;</span>,
+        <span class="hljs-attr">&quot;bankTxnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T15:11:12Z&quot;</span>,
+        <span class="hljs-attr">&quot;subAmtPaid&quot;</span>: <span class="hljs-number">1050</span>
+      }
+    ],
+    <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+    <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;HKD&quot;</span>,
+    <span class="hljs-attr">&quot;totalAmtPaid&quot;</span>: <span class="hljs-number">2100</span>,
+    <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Payment Success&quot;</span>
+  }
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-paySimRequestModel" class="definition panel" data-traverse-target="definition-paySimRequestModel">
+            <h2 class="panel-title">
+              <a name="/definitions/paySimRequestModel"></a>paySimRequestModel: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="txnRef" class="has-description">
+                      <span class="json-property-name">txnRef:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 25 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Merchant to provide transaction ID that referred to a specific transaction</p>
+                    </dd>
+                    <dt data-property-name="merId" class="has-description">
+                      <span class="json-property-name">merId:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 15 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Merchant to provide Merchant ID for identification</p>
+                    </dd>
+                    <dt data-property-name="is_notification_encrypted" class="has-description">
+                      <span class="json-property-name">is_notification_encrypted:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">Y</span>,
+                        <span class="json-property-enum-item">N</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 1 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Flag to indicate if the Status Notification message is encrypted or not</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;merId&quot;</span>: <span class="hljs-string">&quot;0002900F0645774&quot;</span>,
+  <span class="hljs-attr">&quot;is_notification_encrypted&quot;</span>: <span class="hljs-string">&quot;Y&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-paySimResponseModel" class="definition panel" data-traverse-target="definition-paySimResponseModel">
+            <h2 class="panel-title">
+              <a name="/definitions/paySimResponseModel"></a>paySimResponseModel: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="api_gw">
+                      <span class="json-property-name">api_gw:</span>
+                      <span class="json-property-type">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/commonRespObj">commonRespObj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dt data-property-name="response">
+                      <span class="json-property-name">response:</span>
+                      <span class="json-property-type">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/paySimResponseModel_response">paySimResponseModel_response</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;api_gw&quot;</span>: {
+    <span class="hljs-attr">&quot;returnCode&quot;</span>: <span class="hljs-string">&quot;000&quot;</span>,
+    <span class="hljs-attr">&quot;returnReason&quot;</span>: <span class="hljs-string">&quot;RETURN_MESSAGE&quot;</span>,
+    <span class="hljs-attr">&quot;responseTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>,
+    <span class="hljs-attr">&quot;messageId&quot;</span>: <span class="hljs-string">&quot;89817674-daOO-4883&quot;</span>,
+    <span class="hljs-attr">&quot;sentTime&quot;</span>: <span class="hljs-string">&quot;2016-11-15T10:00:00.000Z&quot;</span>
+  },
+  <span class="hljs-attr">&quot;response&quot;</span>: {
+    <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+    <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+    <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Payment Success&quot;</span>
+  }
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-statusReturnRequestModel" class="definition panel" data-traverse-target="definition-statusReturnRequestModel">
+            <h2 class="panel-title">
+              <a name="/definitions/statusReturnRequestModel"></a>statusReturnRequestModel: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="merId" class="has-description">
+                      <span class="json-property-name">merId:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 15 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning back Merchant ID for Merchant identification.</p>
+                    </dd>
+                    <dt data-property-name="txnRef" class="has-description">
+                      <span class="json-property-name">txnRef:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 25 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning back Transaction Reference No.</p>
+                    </dd>
+                    <dt data-property-name="currency" class="has-description">
+                      <span class="json-property-name">currency:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 3 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning back Payment Currency</p>
+                      <ul>
+                        <li>Format: ISO 4217 Alpha (e.g. HKD = Hong Kong Dollar)</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="amount" class="has-description">
+                      <span class="json-property-name">amount:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">1 ≤ x ≤ 999999999999</span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning back Payment Amount </p>
+                      <ul>
+                        <li>Format: Eliminate punctuation and sign, support 2 decimal places, e.g. $10.50 = 1050</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="proCode" class="has-description">
+                      <span class="json-property-name">proCode:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 6 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Process Return Code</p>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Possible Value</th>
+                            <th>Definition</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>000000</td>
+                            <td>Transaction Successful</td>
+                          </tr>
+                          <tr>
+                            <td>999999</td>
+                            <td>Transaction Fail</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </dd>
+                    <dt data-property-name="proMsg" class="has-description">
+                      <span class="json-property-name">proMsg:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 128 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Corresponding Text Message of Process Return Code</p>
+                    </dd>
+                    <dt data-property-name="bankTxnId" class="has-description">
+                      <span class="json-property-name">bankTxnId:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 35 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning HSBC transaction reference id for the inward credit payment</p>
+                    </dd>
+                    <dt data-property-name="bankTxnTime" class="has-description">
+                      <span class="json-property-name">bankTxnTime:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 20 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning HSBC Transaction time for the inward credit payment</p>
+                      <ul>
+                        <li>HSBC system local time. Format： yyyy-MM-dd&#39;T&#39;HH:mm:ssZ</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="debtorName" class="has-description">
+                      <span class="json-property-name">debtorName:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 140 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning debtor&#39;s (payer&#39;s) Name</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;merId&quot;</span>: <span class="hljs-string">&quot;0002900F0645774&quot;</span>,
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;HKD&quot;</span>,
+  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+  <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+  <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Transaction Successful&quot;</span>,
+  <span class="hljs-attr">&quot;bankTxnId&quot;</span>: <span class="hljs-string">&quot;T18050209732&quot;</span>,
+  <span class="hljs-attr">&quot;bankTxnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T14:10:25Z&quot;</span>,
+  <span class="hljs-attr">&quot;debtorName&quot;</span>: <span class="hljs-string">&quot;Chan Siu Ming&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-statusReturnResponseModel" class="definition panel" data-traverse-target="definition-statusReturnResponseModel">
+            <h2 class="panel-title">
+              <a name="/definitions/statusReturnResponseModel"></a>statusReturnResponseModel: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 30 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Return Message</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;status&quot;</span>: <span class="hljs-string">&quot;SUCCESS&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-qrCodeResponseModel_response" class="definition panel" data-traverse-target="definition-qrCodeResponseModel_response">
+            <h2 class="panel-title">
+              <a name="/definitions/qrCodeResponseModel_response"></a>qrCodeResponseModel_response:
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="txnRef" class="has-description">
+                      <span class="json-property-name">txnRef:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 25 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning back the original Transaction Reference No. provided by merchant</p>
+                    </dd>
+                    <dt data-property-name="currency" class="has-description">
+                      <span class="json-property-name">currency:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 3 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning back Payment Currency</p>
+                      <ul>
+                        <li>Format: ISO 4217 Alpha (e.g. HKD = Hong Kong Dollar)</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="amount" class="has-description">
+                      <span class="json-property-name">amount:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">1 ≤ x ≤ 999999999999</span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning back Payment Amount</p>
+                    </dd>
+                    <dt data-property-name="proCode" class="has-description">
+                      <span class="json-property-name">proCode:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 6 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Process Return Code</p>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Possible Value</th>
+                            <th>Definition</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>000000</td>
+                            <td>Transaction Successful</td>
+                          </tr>
+                          <tr>
+                            <td>900010</td>
+                            <td>Merchant ID Not Found</td>
+                          </tr>
+                          <tr>
+                            <td>900020</td>
+                            <td>Duplicate Transaction Reference</td>
+                          </tr>
+                          <tr>
+                            <td>900030</td>
+                            <td>Payment Currency and Settlement Currency is Not Matched</td>
+                          </tr>
+                          <tr>
+                            <td>900040</td>
+                            <td>Proxy Profile Not Found</td>
+                          </tr>
+                          <tr>
+                            <td>900050</td>
+                            <td>Transaction Channel Not Available with the corresponding Merchant</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <ul>
+                        <li>Other than &quot;000000&quot;, all other return codes indicate a fail case.</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="proMsg" class="has-description">
+                      <span class="json-property-name">proMsg:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 128 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Corresponding Text Message of Process Return Code</p>
+                    </dd>
+                    <dt data-property-name="qrCode" class="has-description">
+                      <span class="json-property-name">qrCode:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 512 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>QR Code Token</p>
+                      <ul>
+                        <li>QR Code Token will only be returned if it is a successful transaction.</li>
+                      </ul>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+  <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+  <span class="hljs-attr">&quot;qrCode&quot;</span>: <span class="hljs-string">&quot;QR_CODE_TOKEN&quot;</span>,
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;HKD&quot;</span>,
+  <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Transaction Successful&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-txnEnqResponseModel_response" class="definition panel" data-traverse-target="definition-txnEnqResponseModel_response">
+            <h2 class="panel-title">
+              <a name="/definitions/txnEnqResponseModel_response"></a>txnEnqResponseModel_response:
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="txnRef" class="has-description">
+                      <span class="json-property-name">txnRef:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 25 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning back the original Transaction Reference No. provided by merchant</p>
+                    </dd>
+                    <dt data-property-name="proCode" class="has-description">
+                      <span class="json-property-name">proCode:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 6 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Process Return Code</p>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Possible Value</th>
+                            <th>Definition</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>000000</td>
+                            <td>Payment Success</td>
+                          </tr>
+                          <tr>
+                            <td>100010</td>
+                            <td>Pending</td>
+                          </tr>
+                          <tr>
+                            <td>900010</td>
+                            <td>Transaction Record Not Found</td>
+                          </tr>
+                          <tr>
+                            <td>900020</td>
+                            <td>Merchant ID Not Found</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </dd>
+                    <dt data-property-name="proMsg" class="has-description">
+                      <span class="json-property-name">proMsg:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 128 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Corresponding Text Message of Process Return Code</p>
+                    </dd>
+                    <dt data-property-name="currency" class="has-description">
+                      <span class="json-property-name">currency:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 3 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Payment Currency</p>
+                      <ul>
+                        <li>Format: ISO 4217 Alpha</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="totalAmtPaid" class="has-description">
+                      <span class="json-property-name">totalAmtPaid:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">1 ≤ x ≤ 999999999999</span>
+                    </dt>
+                    <dd>
+                      <p>Total amount of money paid by payer </p>
+                      <ul>
+                        <li>Notice: This amount is to indicate if one customer accidentally submit the FULL payment more than once but NOT a partial payment which will be supported in later version.</li>
+                        <li>Format: Eliminate punctuation and sign, support 2 decimal places, e.g. $10.50 = 1050</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="arrayOfSubAmt">
+                      <span class="json-property-name">arrayOfSubAmt:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-array">
+                          <a class="json-schema-ref" href="#/definitions/subAmountObj">subAmountObj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">
+                          <span class="">
+                            <a class="json-schema-ref" href="#/definitions/subAmountObj">subAmountObj</a>
+                          </span>
+                        </span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+  <span class="hljs-attr">&quot;arrayOfSubAmt&quot;</span>: [
+    {
+      <span class="hljs-attr">&quot;bankTxnId&quot;</span>: <span class="hljs-string">&quot;T18050209732&quot;</span>,
+      <span class="hljs-attr">&quot;bankTxnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T14:10:25Z&quot;</span>,
+      <span class="hljs-attr">&quot;subAmtPaid&quot;</span>: <span class="hljs-number">1050</span>
+    },
+    {
+      <span class="hljs-attr">&quot;bankTxnId&quot;</span>: <span class="hljs-string">&quot;T18050205768&quot;</span>,
+      <span class="hljs-attr">&quot;bankTxnTime&quot;</span>: <span class="hljs-string">&quot;2018-06-11T15:11:12Z&quot;</span>,
+      <span class="hljs-attr">&quot;subAmtPaid&quot;</span>: <span class="hljs-number">1050</span>
+    }
+  ],
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;HKD&quot;</span>,
+  <span class="hljs-attr">&quot;totalAmtPaid&quot;</span>: <span class="hljs-number">2100</span>,
+  <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Payment Success&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-paySimResponseModel_response" class="definition panel" data-traverse-target="definition-paySimResponseModel_response">
+            <h2 class="panel-title">
+              <a name="/definitions/paySimResponseModel_response"></a>paySimResponseModel_response:
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="txnRef" class="has-description">
+                      <span class="json-property-name">txnRef:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 25 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Returning back the Transaction Reference No. provided by merchant</p>
+                    </dd>
+                    <dt data-property-name="proCode" class="has-description">
+                      <span class="json-property-name">proCode:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 6 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Process Return Code</p>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Possible Value</th>
+                            <th>Definition</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>000000</td>
+                            <td>Payment Success</td>
+                          </tr>
+                          <tr>
+                            <td>900010</td>
+                            <td>Transaction Record Not Found</td>
+                          </tr>
+                          <tr>
+                            <td>900020</td>
+                            <td>Merchant ID Not Found</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </dd>
+                    <dt data-property-name="proMsg" class="has-description">
+                      <span class="json-property-name">proMsg:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 128 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Corresponding Text Message of Process Return Code</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;proCode&quot;</span>: <span class="hljs-string">&quot;000000&quot;</span>,
+  <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F06457710500000001&quot;</span>,
+  <span class="hljs-attr">&quot;proMsg&quot;</span>: <span class="hljs-string">&quot;Payment Success&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div class="doc-row no-margin">
+            <div class="doc-copy doc-separator">
+              <a class="powered-by" href="https://sourcey.com/spectacle">Documentation by
+                <span>Spectacle</span>
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </body>
+</html>
