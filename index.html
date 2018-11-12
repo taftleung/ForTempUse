@@ -61,6 +61,7 @@
           <a href="#definition-enq_rpn_payment_Obj"> enq_rpn_payment_Obj </a>
           <a href="#definition-enq_rpn_creditcard_Obj"> enq_rpn_creditcard_Obj </a>
           <a href="#definition-enq_rpn_apm_Obj"> enq_rpn_apm_Obj </a>
+          <a href="#definition-enq_rpn_refund_Obj"> enq_rpn_refund_Obj </a>
           <a href="#definition-statusRtnReqtModel"> statusRtnReqtModel </a>
           <a href="#definition-notif_rqt_txn_Obj"> notif_rqt_txn_Obj </a>
           <a href="#definition-notif_rqt_system_Obj"> notif_rqt_system_Obj </a>
@@ -85,1155 +86,7 @@
           <div id="introduction" data-traverse-target="introduction">
             <div class="doc-row">
               <div class="doc-copy">
-                <p>
-                  <strong>
-                    <em>INTERNAL</em>
-                  </strong>
-                </p>
-                <h1 id="purpose-of-this-document">Purpose of this document</h1>
-                <p>This document provide the audience with
-                  <strong>OpenAPI specification</strong> for describing REST APIs of HSBC ASP Mobile Collection for Retail Payments.</p>
-                <p>The target audience of this document is the Developer, Business Analyst and other related Project Team Member (who has the basic technical know-how of Web technology such as REST or JSON) of HSBC’s client (i.e. the Merchant)</p>
-                <h1 id="update-log">Update Log</h1>
-                <ul>
-                  <li>[Oct 3, 2018]
-                    <strong>v1.0</strong> Initial Draft Version for Merchant Distribution</li>
-                  <li>[Jul 16, 2018]
-                    <strong>v0.9c</strong>
-                    <ul>
-                      <li>Changed API Endpoint</li>
-                      <li>Renamed field <code>txnId</code> to <code>txnRef</code></li>
-                    </ul>
-                  </li>
-                  <li>[May 24, 2018]
-                    <strong>v0.9b</strong> Initial Version for Development Distribution</li>
-                  <li>[May 16, 2018]
-                    <strong>v0.9a</strong> Initial Draft</li>
-                </ul>
-                <h1 id="how-to-read-this-document">How to Read this Document</h1>
-                <p>This document will use a Typical Use Case to walk through the API usage concept and list the key idea by section. There is also a FAQ and List of Schema used by the API functions.</p>
-                <h1 id="channels-and-features">Channels and Features</h1>
-                <p>HSBC Mobile Collection provides a wide range of online payment solutions which allows online merchants to process credit / debit card and alternative payments. The payment platform supports implementations with websites or mobile applications. Our payment gateway is used by many of the fastest growing Asian businesses.</p>
-                <p>Using our APIs services, you can build your own eCommerce website and accept payments including the following payment channels.</p>
-                <ul>
-                  <li>
-                    <strong>Credit / Debit Card Payments</strong>
-                  </li>
-                  <li>
-                    <strong>Alternative Payments (as known as 1-2-3 Payment)</strong>
-                    <ul>
-                      <li>
-                        <strong>Online Payments</strong>
-                        <ul>
-                          <li>Direct Debit / Web Pay</li>
-                          <li>QR Code Payment</li>
-                        </ul>
-                      </li>
-                      <li>
-                        <strong>Offline Payments</strong>
-                        <ul>
-                          <li>Internet and Mobile Banking</li>
-                          <li>Cash payments over convenience stores or bank counters</li>
-                          <li>ATM and Kiosk Payments</li>
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-                <h2 id="credit-card-debit-card-payments">Credit Card / Debit Card Payments</h2>
-                <p>HSBC Mobile Collection accept all credit card issued with these Principals:</p>
-                <ul>
-                  <li>Accept Visa</li>
-                  <li>MasterCard</li>
-                  <li>Amex</li>
-                  <li>JCB</li>
-                  <li>CUP</li>
-                  <li>Diners</li>
-                  <li>Discover</li>
-                </ul>
-                <p>Credit card transaction in Thailand Online Merchant is usually required additional security from issuer Bank, called 3D Secure. This process will ask the genuine credit card holder to enter Internet PIN or One Time PIN(OTP) that usually sent to Credit Card Holder mobile phone.</p>
-                <h3 id="api-use-case">API Use Case</h3>
-                <p><code>Credit_Card_Payment.png</code></p>
-                <ol>
-                  <li>Customer conducts checkout process in merchant&#39;s website.</li>
-                  <li>Merchant submits Payment Page Redirect API request to HSBC.</li>
-                  <li>HSBC return JSON response which embedded the redirect link of the Secured Online Payment Page with a access token inside field <code>redirectLink</code>. The redirect link is in a <code>HTML submit form</code> format, for details, please see API operation section.</li>
-                  <li>Merchant submits the redirect link using HTML Form POST. It will redirect Merchant website to the Secure Online Payment Page.
-                    <ul>
-                      <li>Merchant can restrict the payment page to show only Credit Card payment by passing value <code>C</code> in optional field <code>payment_option</code>.</li>
-                    </ul>
-                  </li>
-                  <li>Customer can select different payment channels if Merchant does not pass <code>payment_option</code> in Redirect API request.</li>
-                  <li>Customer input Credit Card details in the Payment Page and then further redirected to 3D Secure (3DS) Page for input One-Time password.</li>
-                  <li>Payment page will connect securely to bank and backend systems to process the payment.</li>
-                  <li>HSBC will receive payment status once it is updated from backend system.</li>
-                  <li>HSBC will then trigger Status Notification API and send payment status back to Merchant. Merchant can define this API endpoint in request field <code>notifyUrl</code> in Payment Page Redirect API.</li>
-                  <li>Merchant responds the API to acknowledge. Fail to return a proper response will trigger Notification resend mechanism.</li>
-                  <li>Redirect back to merchant website. Merchant can define this URL in request field <code>redirectUrl</code> in Payment Page Redirect API.</li>
-                  <li>Merchant can optionally submit Payment Status Enquiry API at any time after a payment request is submitted. This is useful when Merchant finds no acknowledge message returned after a certain period of time.</li>
-                  <li>HSBC will return the latest payment status according to the transaction reference number Merchant provided. </li>
-                </ol>
-                <h2 id="online-payments">Online Payments</h2>
-                <p>Payments are processed and confirmed by the bank in real time or customer must be online to scan QR code to make payment in a QR Code payment scenario.</p>
-                <h3 id="api-use-case">API Use Case</h3>
-                <p><code>Online_Payment.png</code></p>
-                <ol>
-                  <li>Customer conducts checkout process in merchant&#39;s website.</li>
-                  <li>Merchant submits Payment Page Redirect API request to HSBC.</li>
-                  <li>HSBC return JSON response which embedded the redirect link of the Secured Online Payment Page with a access token inside field <code>redirectLink</code>. The redirect link is in a <code>HTML submit form</code> format, for details, please see API operation section.</li>
-                  <li>Merchant submits the redirect link using HTML Form POST. It will redirect Merchant website to the Secure Online Payment Page.
-                    <ul>
-                      <li>Merchant can also restrict the payment page to show only 1-2-3 payment option or directly show the QR Code page by passing corresponding value in <code>payment_option</code> in Redirect API request.</li>
-                    </ul>
-                  </li>
-                  <li>Customer can select different payment channels if Merchant does not pass <code>payment_option</code> in Redirect API request.</li>
-                  <li>Customer input all necessary details in the Web Payment Page (Bank&#39;s website) or in a QR Code payment scenario, customer scan the QR Code to make payment with their mobile App.</li>
-                  <li>Payment will then be processed in acquiring bank&#39;s backend system.</li>
-                  <li>HSBC will receive payment status once it is updated from backend system.</li>
-                  <li>HSBC will then trigger Status Notification API and send payment status back to Merchant. Merchant can define this API endpoint in request field <code>notifyUrl</code> in Payment Page Redirect API.</li>
-                  <li>Merchant responds the API to acknowledge. Fail to return a proper response will trigger Notification resend mechanism.</li>
-                  <li>Redirect back to merchant website. Merchant can define this URL in request field <code>redirectUrl</code> in Payment Page Redirect API.</li>
-                  <li>Merchant can optionally submit Payment Status Enquiry API at any time after a payment request is submitted. This is useful when Merchant finds no acknowledge message returned after a certain period of time.</li>
-                  <li>HSBC will return the latest payment status according to the transaction reference number Merchant provided. </li>
-                </ol>
-                <h2 id="offline-payments">Offline Payments</h2>
-                <p>Payment is pending between request and payment.</p>
-                <h3 id="api-use-case">API Use Case</h3>
-                <p><code>Offline_Payment.png</code></p>
-                <ol>
-                  <li>Customer conducts checkout process in merchant&#39;s website.</li>
-                  <li>Merchant submits Payment Page Redirect API request to HSBC.</li>
-                  <li>HSBC return JSON response which embedded the redirect link of the Secured Online Payment Page with a access token inside field <code>redirectLink</code>. The redirect link is in a <code>HTML submit form</code> format, for details, please see API operation section.</li>
-                  <li>Merchant submits the redirect link using HTML Form POST. It will redirect Merchant website to the Secure Online Payment Page.
-                    <ul>
-                      <li>Merchant can let Customer access the Payment Code Page directly by passing corresponding Payment Option values in the request message.</li>
-                    </ul>
-                  </li>
-                  <li>Customer can select different payment channels if Merchant does not pass <code>payment_option</code> in Redirect API request.</li>
-                  <li>Customer can get the payment Code.</li>
-                  <li>Redirect back to merchant website. Merchant can define this URL in request field <code>redirectUrl</code> in Payment Page Redirect API.</li>
-                  <li>HSBC backend system will receive the payment status once the payment process is completed at acquiring bank.</li>
-                  <li>HSBC will then trigger Status Notification API and send payment status back to Merchant. Merchant can define this API endpoint in request field <code>notifyUrl</code> in Payment Page Redirect API.</li>
-                  <li>Merchant responds the API to acknowledge. Fail to return a proper response will trigger Notification resend mechanism.</li>
-                  <li>Merchant can optionally submit Payment Status Enquiry API at any time after a payment request is submitted. This is useful when Merchant finds no acknowledge message returned after a certain period of time.</li>
-                  <li>HSBC will return the latest payment status according to the transaction reference number Merchant provided. </li>
-                </ol>
-                <h2 id="check-status-feature">Check Status Feature</h2>
-                <p>Mobile collection provide feature for merchant to check status of every payment transaction. To implement Check Status, please see the Status Enquiry API.</p>
-                <h2 id="void-refund">Void &amp; Refund</h2>
-                <p>Void and Refund feature are only available by
-                  <strong>
-                    <em>on-request operation</em>
-                  </strong> by HSBC, please access your HSBC contact point for details.</p>
-                <h1 id="connectivity-at-a-glance">Connectivity AT-A-Glance</h1>
-                <p>Connectivity refers to establishing the connection between 2 parties (in this context, it refers to Merchant and HSBC) so that the 2 parties can communicate via the API functions and procedures. Connectivity can be further viewed as the following elements:</p>
-                <ul>
-                  <li>
-                    <p>
-                      <strong>Authentication</strong> - Using Client ID / Secret. Authentication deals with knowing the authenticity of both parties to make an API call (commonly known as sender and receiver depending who initiate the communication).</p>
-                  </li>
-                  <li>
-                    <p>
-                      <strong>Identification</strong> - Merchant ID is used for Merchant identification in each API call.</p>
-                  </li>
-                  <li>
-                    <p>
-                      <strong>Connection Security</strong> - Transport Layer Security via SSL Certificate (TLS1.2)</p>
-                  </li>
-                  <li>
-                    <p>
-                      <strong>Message Security</strong> - Data or Message Security with Signing/Encryption based on Javascript Object Signing and Encryption (JOSE)</p>
-                  </li>
-                </ul>
-                <h2 id="authentication-identification">Authentication &amp; Identification</h2>
-                <h3 id="client-id-client-secret">Client ID &amp; Client Secret</h3>
-                <p>
-                  <strong>
-                    <em>What is the purpose?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>These credentials are for
-                    <strong>API Authentication</strong>. Format is defined in
-                    <strong>Authentication</strong> section.</li>
-                </ul>
-                <p>
-                  <strong>
-                    <em>Where to get it?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>HSBC will deliver the Client ID and Client Secret to the Merchant via secure email during the Merchant onboarding procedure.</li>
-                </ul>
-                <p>
-                  <strong>
-                    <em>How to use it?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>The Merchant is required to put the Client ID and Client Secret into HTTP header every time when calling the API.</li>
-                </ul>
-                <h3 id="merchant-profile-merchant-id">Merchant Profile &amp; Merchant ID</h3>
-                <p>
-                  <strong>
-                    <em>What is the purpose?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>The Merchant profile stores all the required Merchant information in the HSBC backend system in order to enable the payment service. The Merchant ID is for
-                    <strong>Merchant identification</strong> in each API call.</li>
-                </ul>
-                <p>
-                  <strong>
-                    <em>Where to get it?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>During the onboarding procedure, HSBC will gather the Merchant information and set up the Merchant profile. Once the profile is setup HSBC will provide the Merchant ID to the Merchant via secure email.</li>
-                </ul>
-                <p>
-                  <strong>
-                    <em>How to use it?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>The Merchant is required to put the Merchant ID into the field <code>merId</code> for Merchant identification every time when calling the Payment Request API.</li>
-                </ul>
-                <h3 id="how-to-send-api-request-to-hsbc">How to Send API Request to HSBC</h3>
-                <p>To help you understand the basic API Call, we start with an illustration without Encryption.</p>
-                <p>This is also the practice when conducting initial API Request testing without Encryption so as to focus your energy step by step. We will discuss Encryption in details later.</p>
-                <p>In fact, HSBC provides the sandbox Environment for API testing purpose, and this sandbox Environment has the flexibility to skip message encryption.</p>
-                <p>
-                  <strong>Making API via curl Illustration</strong> We will make use of the below parameters of HSBC sandbox Environment for the curl illustration. (Please note that those HSBC sandbox Environment parameters will also be provided by your HSBC contact point).</p>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Value</th>
-                      <th>Remark</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>API
-                        <strong>Base URL</strong> of Sandbox Environment</td>
-                      <td>
-                        <a href="https://devcluster.api.p2g.netd2.HSBC.com.hk/glcm-mobilecoll-mcth-ea-merchantservices-sct-proxy/v1/">https://devcluster.api.p2g.netd2.HSBC.com.hk/glcm-mobilecoll-mcth-ea-merchantservices-sct-proxy/v1/</a>
-                      </td>
-                      <td>Please see the
-                        <strong>API endpoint</strong> in API Operation Section</td>
-                    </tr>
-                    <tr>
-                      <td>Client ID</td>
-                      <td>8b915a4f5b5047f091f210e2232b5ced</td>
-                      <td>Set in HTTP Header.
-                        <strong>
-                          <em>This is a sample value, Merchant should get its own Testing Client ID from HSBC</em>
-                        </strong>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Client Secret</td>
-                      <td>1bb456a541dc416dB6016B5F9583C606</td>
-                      <td>Set in HTTP Header.
-                        <strong>
-                          <em>This is a sample value, Merchant should get its own Testing Client Secret from HSBC</em>
-                        </strong>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Merchant ID</td>
-                      <td>H092091H9730001</td>
-                      <td>API Field value.
-                        <strong>
-                          <em>This is a sample value, Merchant should get its own Testing Merchant ID from HSBC</em>
-                        </strong>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table> <pre><code class="hljs">#<span class="hljs-number">1</span> curl -X POST <span class="hljs-string">"https://devcluster.api.p2g.netd2.hsbc.com.hk/glcm-mobilecoll-mcth-ea-merchantservices-sct-proxy/v1/payment/enquiry"</span> 
-#<span class="hljs-number">2</span>  -H <span class="hljs-string">"message_encrypt: false"</span>
-#<span class="hljs-number">3</span>  -H <span class="hljs-string">"x-HSBC-client-id: 8b915a4f5b5047f091f210e2232b5ced"</span> 
-#<span class="hljs-number">4</span>  -H <span class="hljs-string">"x-HSBC-client-secret: 1bb456a541dc416dB6016B5F9583C606"</span>
-#<span class="hljs-number">5</span>  -H <span class="hljs-string">"Content-Type: application/json"</span>
-#<span class="hljs-number">6</span>  -d <span class="hljs-string">"{<span class="hljs-subst">\"</span>transaction<span class="hljs-subst">\"</span>:{<span class="hljs-subst">\"</span>txnRef<span class="hljs-subst">\"</span>:<span class="hljs-subst">\"</span>0002900F064577105001<span class="hljs-subst">\"</span>},<span class="hljs-subst">\"</span>merchant<span class="hljs-subst">\"</span>:{<span class="hljs-subst">\"</span>merId<span class="hljs-subst">\"</span>:<span class="hljs-subst">\"</span>5822<span class="hljs-subst">\"</span>}}"</span>
-</code></pre>
-                <ol>
-                  <li>Submit Status Enquiry API using <code>POST</code> method </li>
-                  <li>Put the secret header <code>message_encrypt: false</code> to indicate this API call is without message encryption</li>
-                  <li>Put Client ID in <code>HTTP header</code></li>
-                  <li>Put Client Secret in <code>HTTP header</code></li>
-                  <li>Set <code>Content-Type</code> to JSON format</li>
-                  <li>Plain <code>json</code> message payload
-                    <ul>
-                      <li>
-                        <strong>
-                          <em>Notice: All response will be returned in plan json format. This test can ONLY be performed in HSBC Sandbox Environment before Public Key exchange with HSBC during testing stage.</em>
-                        </strong>
-                      </li>
-                    </ul>
-                  </li>
-                </ol>
-                <h2 id="transport-layer-security-ssl-certificate">Transport Layer Security – SSL Certificate</h2>
-                <p>The connection between merchant and HSBC counts on the security protocol to encrypt communication - SSL (Secure Sockets Layer) via HTTPS over the Internet. SSL protocols use what is known as an <code>asymmetric</code> Public Key Infrastructure (PKI) system. SSL Digital Certificate is used when merchant requests a HTTPS connection to HSBC. This certificate contains the public key needed to begin SSL handshake which involves the generation of shared secrets to establish a uniquely secure connection between merchant and HSBC. In summary, with a HTTPS connection, all communications are securely encrypted between you as merchant and HSBC. This is commonly known as Transport Layer Security or (communication) channel security, where a “tunnel” is establish between two parties (merchant and HSBC) so as to shield off the peeping eyes.</p>
-                <h2 id="data-or-message-security-encryption-decryption">Data or Message Security - Encryption/Decryption</h2>
-                <p>On top of the Transport Layer Security, HSBC adopts additional security on the message being passed through the connection session – namely Message or Data Security. Javascript Object Signing and Encryption
-                  <strong>(JOSE)</strong>, is a framework intended for this said purpose to provide a method to securely transfer information between parties. The JOSE framework provides a collection of specifications, including JSON Web Signature
-                  <strong>(JWS)</strong> and JSON Web Encryption
-                  <strong>(JWE)</strong>, to serve this purpose. HSBC uses JWS to sign message and JWE to encrypt the signed message. JOSE actually serves as a locked briefcase containing the data (the API message) within the HTTPS “tunnel”. In other word, the communication has double protection.</p>
-                <h3 id="x-509-version-3-public-key-certificate">X.509 Version 3 Public Key Certificate</h3>
-                <p>In cryptography, X.509 is a standard that defines the format of public key certificates. JOSE makes use of this X.509 Version 3 standard for its encryption and decryption mechanism. (Indeed, X.509 certificates are used in many Internet protocols, including SSL (Secure Sockets Layer) or TLS (Transport Layer Security) we mentioned in previous session of connection security)</p>
-                <p>
-                  <strong>
-                    <em>What is the purpose?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>Both HSBC and Merchant need to generate and exchange <code>Public Key Certificate</code> for
-                    <strong>Message Encryption</strong> purpose. </li>
-                </ul>
-                <p>
-                  <strong>
-                    <em>Where to get it?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>The production public certificate must be generated from an authorized Certificate Authority (CA) for IT security reason.</li>
-                  <li>The Public Key Exchange Procedure is provided by your HSBC contact point.</li>
-                  <li>Public Certificate Specification:
-                    <ul>
-                      <li>Certificate type: <code>X.509 version 3</code></li>
-                      <li>Signing algorithm: <code>2048-bit RSA</code></li>
-                      <li>Hashing algorithm: <code>SHA-256</code></li>
-                    </ul>
-                  </li>
-                </ul>
-                <p>
-                  <strong>
-                    <em>How to use it?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>Merchant is required to use HSBC&#39;s <code>Public Key</code> to encrypt a message every time it sends to HSBC and verify a signed message every time it received from HSBC. Vice versa, HSBC will use Merchant&#39;s <code>Public Key</code> to do the same upon message sent and received from Merchant. Details will be covered in
-                    <strong>Message Encryption</strong> section.</li>
-                  <li>For security purposes, Merchant is required to renew <code>Public Certificate</code> every two years (for details, please contact your HSBC contact point).</li>
-                </ul>
-                <h3 id="keyid-of-jws-jwe">keyID of JWS &amp; JWE</h3>
-                <p>
-                  <strong>
-                    <em>What is the purpose?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>
-                    <p><code>keyID</code> is a key element of creating a JWS Object and a JWE Object during program coding. Please find below the usage of <code>keyID</code> during different phases:</p>
-                    <p>Phases / Object | KeyID of JWS | KeyID of JWE ---|---|--- Signing Message | Used for Create JWS Object Header | n/a Message Encryption | n/a | Used for Create JWE Object Header Message Decryption | Will be extracted as an key alias to bind the corresponding private key | n/a Signature Verification | n/a | Will be extracted as an key alias to bind the corresponding public key</p>
-                  </li>
-                </ul>
-                <p>
-                  <strong>
-                    <em>Where to get it?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>The value of the <code>KeyID</code> is expected to be pre-agreed between HSBC &amp; the Merchant.</li>
-                </ul>
-                <p>
-                  <strong>
-                    <em>How to use it?</em>
-                  </strong>
-                </p>
-                <ul>
-                  <li>To see the detail of how to invoke <code>keyID</code> during program coding, please refer to the following section.</li>
-                  <li>Furthermore, during
-                    <strong>Key Renewal</strong> process, KeyID should be updated and make sure it can binds to the new corresponding private/public key, for details, please refer to your HSBC contact point.</li>
-                </ul>
-                <h2 id="how-to-sign-and-encrypt-message-before-submitting-request">How to Sign and Encrypt Message before Submitting Request</h2>
-                <p>To help you understand how to construct a Signed and Encrypted Message, let&#39;s take the Java program below as an example. Do not worry if you are not familiar with Java, the idea is to let you know the steps and all needed components:</p> <pre><code class="hljs"><span class="hljs-keyword">private</span> JWSObject signMessage(<span class="hljs-built_in">String</span> messagePayload, KeyStore ks, <span class="hljs-built_in">String</span> keyAlias, <span class="hljs-built_in">String</span> keyPw)
-              throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, JOSEException {
-            #1  Payload payload = <span class="hljs-literal">new</span> Payload(messagePayload);
-            
-            #2  JWSHeader <span class="hljs-keyword">header</span> = <span class="hljs-literal">new</span> JWSHeader.Builder(JWSAlgorithm.RS256).keyID(<span class="hljs-string">"0001"</span>).build();
-            #3  JWSObject jwsObject = <span class="hljs-literal">new</span> JWSObject(<span class="hljs-keyword">header</span>, payload);
-            
-            #4  PrivateKey privateKey = (PrivateKey) ks.getKey(keyAlias, keyPw.toCharArray());
-                JWSSigner signer = <span class="hljs-literal">new</span> RSASSASigner(privateKey);
-            #5  jwsObject.sign(signer);
-            
-                <span class="hljs-keyword">return</span> jwsObject;
-            }
-            </code></pre>
-                <ol>
-                  <li>Prepare your
-                    <strong>Message Payload</strong>, that is, the plain <code>json</code> request message</li>
-                  <li>Create
-                    <strong>JWS Header</strong> using <code>RS256</code> signing algorithm and
-                    <strong>JWS keyID</strong>, in this case, <code>0001</code></li>
-                  <li>Create
-                    <strong>JWS Object</strong> by combining JWS Header and Message Payload</li>
-                  <li>Retrieve your
-                    <strong>Private Key</strong> as the signer</li>
-                  <li>Create
-                    <strong>Signed JWS Object</strong> by signing it with the Private Key</li>
-                </ol>
-                <p>Next, you are going to
-                  <strong>Encrypt</strong> the Signed JWS Object:</p> <pre><code class="hljs"><span class="hljs-keyword">public</span> JWEObject getEncryptedJWEObject(JWSObject jwsObject, RSAPublicKey <span class="hljs-built_in">key</span>)
-              <span class="hljs-keyword">throws</span> JOSEException {
-            #<span class="hljs-number">1</span>  <span class="hljs-keyword">final</span> Payload jwepayload = <span class="hljs-keyword">new</span> Payload(jwsObject.serialize());
-            
-            #<span class="hljs-number">2</span>  <span class="hljs-keyword">final</span> JWEHeader jweheader =
-                  <span class="hljs-keyword">new</span> JWEHeader.Builder(JWEAlgorithm.RSA_OAEP_256, EncryptionMethod.A128GCM).keyID(<span class="hljs-string">"0001"</span>).build();
-            
-            #<span class="hljs-number">3</span>  <span class="hljs-keyword">final</span> JWEObject jweObject = <span class="hljs-keyword">new</span> JWEObject(jweheader, jwepayload);
-            
-            #<span class="hljs-number">4</span>  <span class="hljs-keyword">final</span> JWEEncrypter encrypter = <span class="hljs-keyword">new</span> RSAEncrypter(<span class="hljs-built_in">key</span>);
-            #<span class="hljs-number">5</span>  jweObject.encrypt(encrypter);
-            
-                <span class="hljs-keyword">return</span> jweObject;
-            }
-            </code></pre>
-                <ol>
-                  <li>Prepare your
-                    <strong>JWE Payload</strong>, that is, the <code>Signed JWS Object</code></li>
-                  <li>Create
-                    <strong>JWE Header</strong>. The algorithm used to encrypt the message body is <code>A128GCM</code> while the algorithm used to encrypt the encryption key is <code>RSA_OAEP_256</code>.
-                    <strong>JWE keyID</strong> is <code>0001</code> again.</li>
-                  <li>Create
-                    <strong>JWE Object</strong> by combining JWE Header and JWE Payload</li>
-                  <li>Retrieve
-                    <strong>HSBC&#39;s Public Key</strong> as the encrypter</li>
-                  <li>Create
-                    <strong>Encrypted JWE Object</strong> by encrypted it with HSBC&#39;s Public Key</li>
-                </ol>
-                <p>Yes, you are now ready to put the Encrypted JWE Object as the message body
-                  <em>(you may need to first serialize it into String format, depends on your program code design)</em> of any API call. </p>
-                <h2 id="how-to-decrypt-message-and-verify-signature-after-receiving-response">How to Decrypt Message and Verify Signature after Receiving Response</h2>
-                <p>Let&#39;s look into the following example to see how you decrypt a response message from HSBC:</p> <pre><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-built_in">String</span> decryptMessage(<span class="hljs-built_in">String</span> respMsgPayload, KeyStoreFactory keyStore)
-              throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, 
-              java.text.ParseException, UnrecoverableKeyException, JOSEException {
-            #1  JWEObject jweObject = JWEObject.parse(respMsgPayload);
-            
-            #2  PrivateKey privateKey = (PrivateKey) keyStore.getPrivateKey(<span class="hljs-string">"merchant_private_key_alias"</span>);
-            
-                JWEDecrypter decrypter = <span class="hljs-literal">new</span> RSADecrypter(privateKey);
-            #3  jweObject.decrypt(decrypter);
-            
-            #4  <span class="hljs-built_in">String</span> signedMessage = jweObject.getPayload().toString();
-                <span class="hljs-keyword">return</span> signedMessage;
-            }
-            </code></pre>
-                <ol>
-                  <li>Create
-                    <strong>Encrypted JWE Object</strong> by parsing the encrypted response message payload</li>
-                  <li>Retrieve
-                    <strong>Private Key</strong> as the decrypter</li>
-                  <li>Decrypt the JWE Object using your Private Key</li>
-                  <li>Get the
-                    <strong>Signed Message</strong> from the decrypted JWE Object</li>
-                </ol>
-                <p>You are now able to extract the plain <code>json</code> message. Yet, before that, you
-                  <strong>must</strong> verify the signature to guarantee data integrity.</p> <pre><code class="hljs"><span class="hljs-keyword">private</span> <span class="hljs-keyword">String</span> verifySignature(<span class="hljs-keyword">String</span> signedMessage, KeyStore ks, <span class="hljs-keyword">String</span> keyAlias)
-              throws KeyStoreException, JOSEException, ParseException {
-            <span class="hljs-meta">#1  JWSObject jwsObject = JWSObject.parse(signedMessage);</span>
-            
-                Certificate certificate = ks.getCertificate(keyAlias);
-            <span class="hljs-meta">#2  JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) certificate.getPublicKey());</span>
-            
-            <span class="hljs-meta">#3  <span class="hljs-meta-keyword">if</span> (!jwsObject.verify(verifier)) {</span>
-                  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-type">ValidationException</span>(<span class="hljs-string">"Invalid Signature"</span>);
-                }
-            <span class="hljs-meta">#4  return jwsObject.getPayload().toString();</span>
-            }
-            </code></pre>
-                <ol>
-                  <li>Create
-                    <strong>JWS Object</strong> by parsing the <code>Signed Message</code></li>
-                  <li>Retrieve
-                    <strong>HSBC’s Public Key</strong> as the verifier</li>
-                  <li>Verify the signed JWS Object. Invoke error handling if invalid signature found
-                    <em>(depends on your code design)</em>
-                  </li>
-                  <li>Get the plain <code>json</code> message for further actions</li>
-                </ol>
-                <h2 id="making-api-request-with-encryption-via-curl-illustration">Making API Request with Encryption via curl Illustration</h2>
-                <p>In the previous session of Authentication, we use curl without Encryption for illustration. We also suggest this can be the practice of performing testing in HSBC Sandbox Environment step by step.</p>
-                <p>After explaining the concept of Javascript Object Signing and Encryption (JOSE) framework, let’s have it in our next illustration of sending API Request to HSBC.</p>
-                <p>Again, we will use the same set of parameters of HSBC sandbox Environment for the curl illustration. (Assumption: Key Exchange has been done, procedure of Key Exchange is provided by your HSBC contact point)</p>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Value</th>
-                      <th>Remark</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>API
-                        <strong>Base URL</strong> of Sandbox Environment</td>
-                      <td>
-                        <a href="https://devcluster.api.p2g.netd2.hsbc.com.hk/glcm-mobilecoll-mcth-ea-merchantservices-sct-proxy/v1/">https://devcluster.api.p2g.netd2.hsbc.com.hk/glcm-mobilecoll-mcth-ea-merchantservices-sct-proxy/v1/</a>
-                      </td>
-                      <td>Please see the
-                        <strong>API endpoint</strong> in API Operation Section</td>
-                    </tr>
-                    <tr>
-                      <td>Client ID</td>
-                      <td>8b915a4f5b5047f091f210e2232b5ced</td>
-                      <td>Set in HTTP Header.
-                        <strong>
-                          <em>This is a sample value, Merchant should get its own Testing Client ID from HSBC</em>
-                        </strong>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Client Secret</td>
-                      <td>1bb456a541dc416dB6016B5F9583C606</td>
-                      <td>Set in HTTP Header.
-                        <strong>
-                          <em>This is a sample value, Merchant should get its own Testing Client Secret from HSBC</em>
-                        </strong>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Merchant ID</td>
-                      <td>H092091H9730001</td>
-                      <td>API Field value.
-                        <strong>
-                          <em>This is a sample value, Merchant should get its own Testing Merchant ID from HSBC</em>
-                        </strong>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>keyID of JWS</td>
-                      <td>0001</td>
-                      <td>Set in program code when creating JWS Object.
-                        <strong>
-                          <em>This is a sample value, Merchant should pre-agreed the value with HSBC before using</em>
-                        </strong>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>keyID of JWE</td>
-                      <td>0001</td>
-                      <td>Set in program code when creating JWE Object.
-                        <strong>
-                          <em>This is a sample value, Merchant should pre-agreed the value with HSBC before using</em>
-                        </strong>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table> <pre><code class="hljs"><span class="hljs-meta">#</span><span class="bash">1 curl -X POST <span class="hljs-string">"https://devcluster.api.p2g.netd2.HSBC.com.hk/glcm-mobilecoll-mcth-ea-merchantservices-sct-proxy/v1/payment/pageRedirect"</span> </span>
-<span class="hljs-meta">#</span><span class="bash">2  -H <span class="hljs-string">"x-HSBC-client-id: 8b915a4f5b5047f091f210e2232b5ced"</span> </span>
-<span class="hljs-meta">#</span><span class="bash">3  -H <span class="hljs-string">"x-HSBC-client-secret: 1bb456a541dc416dB6016B5F9583C606"</span> </span>
-<span class="hljs-meta">#</span><span class="bash">4  -H <span class="hljs-string">"Content-Type: application/json"</span> </span>
-<span class="hljs-meta">#</span><span class="bash">5  -d <span class="hljs-string">"eyJraWQiOiIwMDAxIiwiZW5jIjoiQTEyOEdDTSIsImFsZyI6IlJTQS1PQUVQLTI1NiJ9.aRW7-ypMod_6vp4r5jDQ6vspJu359BFZvxouFSCqok_mSHcjZy515LuMqp_WxhzLwg3Lcru3-G0syB3mJrHrP1HldoLmOikuEoBhhQyuxFFhOaeiDJDZse4EVBNEpay-4eSnikqCq3LKFgCLkfVEhiQNx9f5q1pwjXx5ldQJXtp4Uikdu9g-UY6vtOtQirhlnaQoIULfan9GZQQwOekf8eKPj-xP4ZK_rwAit8bPvtk9MMZanVwe9wF2Uz31HN1Lky0ycv516nU3DHW_N96lAiej7ObiVeOeDe-pIShWPCYGtsLkQDv5Al-2iZi88168RDlJUOcN-QsE7rH3-ywNHA.6mML2HnA_ZXEQDyN.sX422yRxJfKszes6K_2Xro5S6QREaSDDpRiJz63aKvE5aITsId4e556XKsQPGBg8jhyEqDcMNgqBpDlhOBOO4SG9c9IC1SdYai3DGcp73fhqmSjU-IJbG5g--Drps0O_rvRK2VsA3elzsrcpEiyvfrzDJ5fo-_-VHjlcWkgHyCmepXIuyjLmafkRzgYb158xSNJplsyEzdaBse9IjplQNggYcUashbqCUYRBncvvzIxcNX3NexPL8Om520iZCtjHVfupTvJCQ5iNtbx6BMjQ089OgWdF9zWkTgeWL1KkGbzsWR1heFomLrSFb5Xn6HNT0TXKVQOMPKueYidlvApdF6cIOxzolFh3iuVECYzUDya9NwEqhBvbqDmWhrgyg4y9vz2Ew7cBIVGyDPIiSECwtgwblvl1Az1xZEl-8Zu6fgknUZzoR7r7efeJFOlKlKY0mKHFEmRcjkv5elUqVUPWqx68S7-HDq-xQzZ5a5ZXbY9_l17GGseiUAzC5NHY9Cj7mt3elZhRWtFUCYSaEZa1r00GUCSGeR8-as09N0D4f-AuuAstnPNs6JRFAzGn2CFocmxjCo3jdwJw8btxLkuJzVVdYwPvlembP7XIKoeGikoVTezLPIbCOWB8bF7bltbShItVgY6ytD1n6kLZH1irbeqBF4wGFHdAOJRILqxaOMbKhOBimoqQryCcvgXbfwbGcKbX8gSazR1m2BUci0TzEA6T5Fr8ojRoByGNFKRG3V8drSrmWJwlCtDZsei-5vzLwJDZdyRVRwpKokDPuwBhcYLU_NGfiGkUizfImY2bTSGEoVAmrNJHvM668PL2s3WUbyydAtEm8U4_rymZLHxMxA3EjPOEuagGJIU5tVBmY0w7g8Mg_DkICvoYWTA_XdwWEQgNNPytJIqzMEh5tO7TIEsHKn7_SuFECvseAhdp3Lm3tzGrmAPhG2onlABMO3CUJY4vKCy1SuILjPgyl2cziIIxWjCrHZEH2woo1cLDCACfhXAec4UX6cL0iCKipFsE1Pjr8LffuRjHZ4MXjd2fQxvKHw_oa8tRyHc4wKOWN8rHTaK4mIWXm3rkSohbiarWtgJFq47G_4z5rQ-aN2J99UmCJB5IqDfW9zWpfWweKvUo2jWct29UcphOAQcwhtwffeRbp9GAQHordtCGcerlrAPjvS6_ItDoMQZtAN5kTqHbWX_i-NzGiRU5gAQWH92bwYGRToaPoRLPTuwC75AgVuXXD5aXMLF8Uqy3r29rGTn_R9LTyBsCXfWUCelU_4FCMdPfpQqyqt5mA4qB5s-RUqUNQo8jemGkeY1C9NfE4DXeXJ_E_3zh6a5EEory9BPhfM_BnHRyGxvTOkAPCffE5KDNx2h2Wc1lm6efh-oeTz3pVgqg9elh3xOJY71KspVwAWyBQoyDU3MIejWgztGGRnRZISqa5K470MU274ffUeWmr7HYi3Dseux4MID_1Um2UM9CqGBN8QeKQnqDVd1ZoCzXq0t7rZ-Q9MWWL7zEBxp_qhvgl9tbXAKmqFauuw7VEDpsGkmDj9rLUKJD08llwnx89_QFiYPzi2apIJcQeNB0K4WU3csHzzn5qoFfdcAdKU7CnUll0wDY4eSvN8nkDlRi0SzUk9TwPfUK8u3_Q_fxMwMNu-g2cRFQM-DCeQz18izlMRwyFWmZd0VG6Xgbom-SoQ9g4et21bLobWJwhVYwEU2bweIP-CV2ldZZ-JQaCIVE-GCWLb1FB0abC_QXkIULAnn6TNAqPhKwhd4WWSig5xvpZ7k.RggvI98qmLva3QAlbEq4FA"</span></span>
-</code></pre>
-                <ol>
-                  <li>Submit QR Code Creation API using <code>POST</code> method </li>
-                  <li>Put Client ID in <code>HTTP header</code></li>
-                  <li>Put Client Secret in <code>HTTP header</code></li>
-                  <li>Set <code>Content-Type</code> to JSON format</li>
-                  <li>Encrypted Message Payload. Please refer <code>Message Encryption</code> section for more details of Message Signing and Message Encryption.
-                    <ul>
-                      <li>
-                        <strong>
-                          <em>Notice: Public Key exchange must be taken place prior to this test.</em>
-                        </strong>
-                      </li>
-                    </ul>
-                  </li>
-                </ol>
-                <p>For a successful request (HTTP Status Code 200), an encrypted response message will be returned, otherwise, a plain <code>json</code> with failure message will be returned.</p>
-                <h2 id="summary">Summary</h2>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Components \ Steps</th>
-                      <th>Message Signing</th>
-                      <th>Message Encryption</th>
-                      <th>Message Decryption</th>
-                      <th>Verify Signature</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>JWS Object</td>
-                      <td>Signing Algorithm: <code>RS256</code></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>JWE Object</td>
-                      <td></td>
-                      <td>JWE Algorithm: <code>RSA_OAEP_256</code> Encryption Method: <code>A128GCM</code></td>
-                      <td></td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>KeyID</td>
-                      <td><code>0001</code></td>
-                      <td><code>0001</code></td>
-                      <td></td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>Merchant&#39;s Private Key</td>
-                      <td>Used as <code>Signer</code></td>
-                      <td></td>
-                      <td>Used as <code>Decrypter</code></td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>HSBC&#39;s Public Key</td>
-                      <td></td>
-                      <td>Used as <code>Encrypter</code></td>
-                      <td></td>
-                      <td>Used as <code>Verifier</code> </td>
-                    </tr>
-                  </tbody>
-                </table>
-                <h1 id="data-type-overview">Data Type Overview</h1>
-                <p>
-                  <strong>Data Type Control:</strong>
-                </p>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Data Type</th>
-                      <th>Allowed Characters</th>
-                      <th>Definition &amp; Important Notice</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>String</td>
-                      <td><code>0-9</code> <code>a-z</code> <code>A-Z</code> and symbols <code>, . &amp; ; + : / =</code> Notice: <code>@</code> is specifically allowed in email field</td>
-                      <td>HSBC system will execute characters checking upon all string fields we received in order to tackle security vulnerability, such as Cross-site Scripting. Moreover, the starting and ending space of the string value will be trimmed before stored in HSBC system. For example, string <code>&quot; example 12 34 &quot;</code> will be trimmed to <code>&quot;example 12 34&quot;</code>.</td>
-                    </tr>
-                    <tr>
-                      <td>Integer</td>
-                      <td><code>0-9</code></td>
-                      <td>Instead of having Max Length check for String, integer range will be checked, e.g. <code>0 ≤ x ≤ 9999</code> </td>
-                    </tr>
-                  </tbody>
-                </table>
-                <p>
-                  <strong>Field Mandatory Control:</strong>
-                </p>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Field Mandatory Type</th>
-                      <th>Definition &amp; Important Notice</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Mandatory</td>
-                      <td>Annotated with <code>Required</code> in field definition section. Field &amp; value must be present in the request with valid <code>JSON</code> format. </td>
-                    </tr>
-                    <tr>
-                      <td>Optional</td>
-                      <td>Without a <code>Required</code> tag in field definition. If you don&#39;t want to pass fields that are optional, your handler should not pass neither empty strings <code>{&quot;example&quot;:&quot;&quot;}</code> nor blank value <code>{&quot;example&quot;:&quot;   &quot;}</code>.</td>
-                    </tr>
-                    <tr>
-                      <td>Conditional</td>
-                      <td>Required under a specific condition whose logic is always provided in the field definition if it is a Conditional Field.</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <p>
-                  <strong>Time Zone Control:</strong>
-                </p>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Aspect</th>
-                      <th>Format</th>
-                      <th>Definition &amp; Important Notice</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>In Request Message</td>
-                      <td><code>yyyy-MM-dd&#39;T&#39;HH:mm:ssZ</code></td>
-                      <td>Time zone is expected to be <code>GMT+7</code> (Jakarta local time). Merchant is required to perform any necessary time zone conversion before submit request if needed. </td>
-                    </tr>
-                    <tr>
-                      <td>In Response Message</td>
-                      <td><code>yyyy-MM-dd&#39;T&#39;HH:mm:ss±hh:mm</code></td>
-                      <td>Timezone returned in <code>api_gw</code> object is generated from HSBC API Gateway which located in Cloud and hence is calculated in <code>GMT+0</code>. On the other hand, time field in <code>response</code> object will be returned together with timezone information. For more details, please read each field definition carefully.</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <h1 id="response-code">Response Code</h1>
-                <h2 id="channel-response-code">Channel response code</h2>
-                <h3 id="credit-cards-debit-cards">Credit Cards / Debit Cards</h3>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Response Code</th>
-                      <th>Definition</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>00</td>
-                      <td>Success.</td>
-                    </tr>
-                    <tr>
-                      <td>9000</td>
-                      <td>Payment Failed.</td>
-                    </tr>
-                    <tr>
-                      <td>9001</td>
-                      <td>unrecognized version number.</td>
-                    </tr>
-                    <tr>
-                      <td>9002</td>
-                      <td>authentication failed.</td>
-                    </tr>
-                    <tr>
-                      <td>9003</td>
-                      <td>The http request must be POST method.</td>
-                    </tr>
-                    <tr>
-                      <td>9004</td>
-                      <td>The invalid request.</td>
-                    </tr>
-                    <tr>
-                      <td>9005</td>
-                      <td>missing mandatory fields or parameters.</td>
-                    </tr>
-                    <tr>
-                      <td>9006</td>
-                      <td>The string length of the input parameters has exceeded more than it&#39;s specified.</td>
-                    </tr>
-                    <tr>
-                      <td>9007</td>
-                      <td>merchant_id is not found.</td>
-                    </tr>
-                    <tr>
-                      <td>9008</td>
-                      <td>The currency code is invalid or incorrect.</td>
-                    </tr>
-                    <tr>
-                      <td>9009</td>
-                      <td>invalid amount.</td>
-                    </tr>
-                    <tr>
-                      <td>9010</td>
-                      <td>invalid email format.</td>
-                    </tr>
-                    <tr>
-                      <td>9011</td>
-                      <td>Invalid url.</td>
-                    </tr>
-                    <tr>
-                      <td>9012</td>
-                      <td>The value of invoice_no is invalid.</td>
-                    </tr>
-                    <tr>
-                      <td>9018</td>
-                      <td>The duplicate order_id request.</td>
-                    </tr>
-                    <tr>
-                      <td>9019</td>
-                      <td>The current request has inconsistent parameters&#39; value with regard to the previous request with the same order_id.</td>
-                    </tr>
-                    <tr>
-                      <td>9020</td>
-                      <td>Duplicate payment request. The payment has been processed before.</td>
-                    </tr>
-                    <tr>
-                      <td>9021</td>
-                      <td>Transaction reject: The payment is currently in process for this same transaction.</td>
-                    </tr>
-                    <tr>
-                      <td>9022</td>
-                      <td>transaction has expired.</td>
-                    </tr>
-                    <tr>
-                      <td>9023</td>
-                      <td>The credit card number can&#39;t be blank.</td>
-                    </tr>
-                    <tr>
-                      <td>9024</td>
-                      <td>The credit card number is invalid.</td>
-                    </tr>
-                    <tr>
-                      <td>9025</td>
-                      <td>The credit card expiry can&#39;t be blank.</td>
-                    </tr>
-                    <tr>
-                      <td>9026</td>
-                      <td>The credit card expiry date is invalid. Enter a non-expired card.</td>
-                    </tr>
-                    <tr>
-                      <td>9027</td>
-                      <td>The credit card expiry date is invalid. Enter a non-expired card.</td>
-                    </tr>
-                    <tr>
-                      <td>9028</td>
-                      <td>The credit card verification code (cvc/cvv) can&#39;t be blank.</td>
-                    </tr>
-                    <tr>
-                      <td>9029</td>
-                      <td>The CVV is invalid. It must be a number.</td>
-                    </tr>
-                    <tr>
-                      <td>9030</td>
-                      <td>The credit card holder name can&#39;t be blank.</td>
-                    </tr>
-                    <tr>
-                      <td>9031</td>
-                      <td>The card holder name can&#39;t be more than 50 characters.</td>
-                    </tr>
-                    <tr>
-                      <td>9032</td>
-                      <td>The card holder name only accept characters <code>-_,&#39;.A-Za-z&amp;</code></td>
-                    </tr>
-                    <tr>
-                      <td>9033</td>
-                      <td>The issuing bank name can&#39;t be blank.</td>
-                    </tr>
-                    <tr>
-                      <td>9034</td>
-                      <td>The issuing bank name has unaccepted characters `- ~;!@#$%^&amp;*&lt;&gt; {}/</td>
-                      <td>:`</td>
-                    </tr>
-                    <tr>
-                      <td>9035</td>
-                      <td>The issuing bank name can&#39;t be more than 50 characters.</td>
-                    </tr>
-                    <tr>
-                      <td>9036</td>
-                      <td>The issuing bank country can&#39;t be blank.</td>
-                    </tr>
-                    <tr>
-                      <td>9037</td>
-                      <td>The selected issuing bank country is invalid.</td>
-                    </tr>
-                    <tr>
-                      <td>9038</td>
-                      <td>invalid merchant configuration.</td>
-                    </tr>
-                    <tr>
-                      <td>9039</td>
-                      <td>User 2 Factors (3D) authentication failed.</td>
-                    </tr>
-                    <tr>
-                      <td>9040</td>
-                      <td>The request is invalid. The payment_token is invalid.</td>
-                    </tr>
-                    <tr>
-                      <td>9041</td>
-                      <td>invalid transaction_id.</td>
-                    </tr>
-                    <tr>
-                      <td>9042</td>
-                      <td>Invalid hash value.</td>
-                    </tr>
-                    <tr>
-                      <td>9043</td>
-                      <td>Payment authorization failed.</td>
-                    </tr>
-                    <tr>
-                      <td>9044</td>
-                      <td>Invalid order id.</td>
-                    </tr>
-                    <tr>
-                      <td>9050</td>
-                      <td>MPI server unable to check.</td>
-                    </tr>
-                    <tr>
-                      <td>9051</td>
-                      <td>MPI server host error.</td>
-                    </tr>
-                    <tr>
-                      <td>9052</td>
-                      <td>The duplicate payment authorization request.</td>
-                    </tr>
-                    <tr>
-                      <td>9054</td>
-                      <td>Routing Failed.</td>
-                    </tr>
-                    <tr>
-                      <td>9055</td>
-                      <td>Session has been expired due to idle over time limit.</td>
-                    </tr>
-                    <tr>
-                      <td>9056</td>
-                      <td>Invalid promotion code value.</td>
-                    </tr>
-                    <tr>
-                      <td>9057</td>
-                      <td>Invalid payment option.</td>
-                    </tr>
-                    <tr>
-                      <td>9058</td>
-                      <td>Invalid IPP interest type.</td>
-                    </tr>
-                    <tr>
-                      <td>9059</td>
-                      <td>Invalid payment expiry.</td>
-                    </tr>
-                    <tr>
-                      <td>9060</td>
-                      <td>QuickPay does not exists.</td>
-                    </tr>
-                    <tr>
-                      <td>9061</td>
-                      <td>Stored card unique id or masked card number are invalid.</td>
-                    </tr>
-                    <tr>
-                      <td>9062</td>
-                      <td>Invalid request 3DS value.</td>
-                    </tr>
-                    <tr>
-                      <td>9063</td>
-                      <td>Non-3DS transaction is not allowed.</td>
-                    </tr>
-                    <tr>
-                      <td>9064</td>
-                      <td>Invalid next charge date.</td>
-                    </tr>
-                    <tr>
-                      <td>9065</td>
-                      <td>Invalid recurring interval.</td>
-                    </tr>
-                    <tr>
-                      <td>9066</td>
-                      <td>Invalid recurring count.</td>
-                    </tr>
-                    <tr>
-                      <td>9067</td>
-                      <td>Invalid recurring amount.</td>
-                    </tr>
-                    <tr>
-                      <td>9068</td>
-                      <td>Invalid recurring accumulate amount.</td>
-                    </tr>
-                    <tr>
-                      <td>9069</td>
-                      <td>Invalid recurring flag.</td>
-                    </tr>
-                    <tr>
-                      <td>9070</td>
-                      <td>Invalid recurring accumulate flag.</td>
-                    </tr>
-                    <tr>
-                      <td>9071</td>
-                      <td>Invalid recurring order prefix.</td>
-                    </tr>
-                    <tr>
-                      <td>9072</td>
-                      <td>Invalid charge on date.</td>
-                    </tr>
-                    <tr>
-                      <td>9073</td>
-                      <td>Invalid next recurring charge date.</td>
-                    </tr>
-                    <tr>
-                      <td>9074</td>
-                      <td>Invalid Statement Descriptor Value.</td>
-                    </tr>
-                    <tr>
-                      <td>9079</td>
-                      <td>Stored card unique id is invalid.</td>
-                    </tr>
-                    <tr>
-                      <td>9080</td>
-                      <td>Merchant not allowed for tokenization.</td>
-                    </tr>
-                    <tr>
-                      <td>9081</td>
-                      <td>Merchant not allowed for tokenization without authorization.</td>
-                    </tr>
-                    <tr>
-                      <td>0034</td>
-                      <td>Fraud system reject.</td>
-                    </tr>
-                    <tr>
-                      <td>0035</td>
-                      <td>Payment failed.</td>
-                    </tr>
-                    <tr>
-                      <td>0036</td>
-                      <td>Payment is cancelled.</td>
-                    </tr>
-                    <tr>
-                      <td>0037</td>
-                      <td>Invalid merchant configuration or merchant is not registered.</td>
-                    </tr>
-                    <tr>
-                      <td>0055</td>
-                      <td>MPI reject.</td>
-                    </tr>
-                    <tr>
-                      <td>0062</td>
-                      <td>Corporate Bin Block.</td>
-                    </tr>
-                    <tr>
-                      <td>0096</td>
-                      <td>Bank Host not available.</td>
-                    </tr>
-                    <tr>
-                      <td>0099</td>
-                      <td>reserved error code.</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <h3 id="channel-cash-payment-direct-debit">Channel: Cash Payment / Direct Debit</h3>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Response Code</th>
-                      <th>Definition</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>000</td>
-                      <td>Success (PAID) - only for WEB PAY channel</td>
-                    </tr>
-                    <tr>
-                      <td>001</td>
-                      <td>Success (PENDING) - for all other channels</td>
-                    </tr>
-                    <tr>
-                      <td>002</td>
-                      <td>Timeout</td>
-                    </tr>
-                    <tr>
-                      <td>003</td>
-                      <td>Invalid message</td>
-                    </tr>
-                    <tr>
-                      <td>004</td>
-                      <td>Invalid profile (merchant) id</td>
-                    </tr>
-                    <tr>
-                      <td>005</td>
-                      <td>Duplicated invoice no</td>
-                    </tr>
-                    <tr>
-                      <td>006</td>
-                      <td>Invalid amount</td>
-                    </tr>
-                    <tr>
-                      <td>007</td>
-                      <td>Insufficient balance</td>
-                    </tr>
-                    <tr>
-                      <td>008</td>
-                      <td>Invalid currency code</td>
-                    </tr>
-                    <tr>
-                      <td>009</td>
-                      <td>Payment expired</td>
-                    </tr>
-                    <tr>
-                      <td>010</td>
-                      <td>Payment canceled</td>
-                    </tr>
-                    <tr>
-                      <td>011</td>
-                      <td>Invalid payee id</td>
-                    </tr>
-                    <tr>
-                      <td>012</td>
-                      <td>Invalid customer id</td>
-                    </tr>
-                    <tr>
-                      <td>013</td>
-                      <td>Account does not exists</td>
-                    </tr>
-                    <tr>
-                      <td>014</td>
-                      <td>Authentication failed</td>
-                    </tr>
-                    <tr>
-                      <td>015</td>
-                      <td>Success (PAID) more than transaction amount (offline) - DEPRECATED</td>
-                    </tr>
-                    <tr>
-                      <td>016</td>
-                      <td>Success (Paid) less than transaction amount (offline) - DEPRICATED</td>
-                    </tr>
-                    <tr>
-                      <td>017</td>
-                      <td>Success (Paid) expired - DEPRICATED</td>
-                    </tr>
-                    <tr>
-                      <td>998</td>
-                      <td>Internal error</td>
-                    </tr>
-                    <tr>
-                      <td>999</td>
-                      <td>System error</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <h1 id="faq">FAQ</h1>
-                <h2 id="ssl-connection-questions">SSL Connection Questions</h2>
-                <h3 id="where-can-i-find-hsbc-ssl-server-certificates-">Where can I find HSBC SSL server certificates?</h3>
-                <p>Merchant developer is able to export SSL server certificates that has been installed in your browser. By doing this, visit the
-                  <strong>domain</strong> of the corresponding API endpoint in your browser. For example, to get the SSL certificate of sandbox environment, use domain name
-                  <a href="https://devcluster.api.p2g.netd2.HSBC.com.hk/">https://devcluster.api.p2g.netd2.HSBC.com.hk/</a>
-                </p>
-                <p>However,
-                  <strong>in production</strong>, we will provide a certificate and require TLS 1.2 implementation.</p>
-                <h2 id="message-encryption-questions">Message Encryption Questions</h2>
-                <h3 id="what-certificates-will-i-need-to-work-for-message-encryption-in-hsbc-s-sandbox-and-production-environments-">What certificates will I need to work for Message Encryption in HSBC&#39;s sandbox and production environments?</h3>
-                <p>A self-sign certificate is accepted in sandbox environment. In production, Merchant is required to procure a public certificate from an authorized Certificate Authority (CA) for IT security reason.</p>
-                <h2 id="authorized-certificate-authority-ca-questions">Authorized Certificate Authority (CA) Questions</h2>
-                <h3 id="who-are-the-cas-in-the-market-">Who are the CAs in the market?</h3>
-                <p>There are a lot of authorized CAs in the market. Example includes but not limited to:</p>
-                <ul>
-                  <li>
-                    <a href="https://www.websecurity.symantec.com/en/hk/ssl-certificate">Symantec</a>
-                  </li>
-                  <li>
-                    <a href="https://www.entrustdatacard.com/products/categories/digital-signing-certificates">Entrust</a>
-                  </li>
-                  <li>
-                    <a href="https://www.digicert.com/digital-certificates/">DigiCert</a>
-                  </li>
-                </ul>
-                <p>
-                  <em>Please note that HSBC has not direct relationship with those CAs, the list quoted above is solely for illustration or reference only and it is not an exclusive list. Merchants should make their own judgment on engaging the CAs.</em>
-                </p>
-                <h2 id="javascript-object-signing-and-encryption-jose-framework-questions">Javascript Object Signing and Encryption (JOSE) Framework Questions</h2>
-                <p>If you want to fully understand the framework, you can read
-                  <a href="http://jose.readthedocs.io/en/latest/">here</a> for more details. (Please note the url does not belongs to HSBC, use it on your own discretion. By clicking the url or website, it means you accept this terms and conditions.)</p>
-                <h2 id="jose-libraries-questions">JOSE libraries Questions</h2>
-                <p>For your reference, you may find the following JOSE libraries of different programming languages.</p>
-                <ul>
-                  <li>
-                    <a href="https://github.com/potatosalad/ruby-jose">Ruby</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/mpdavis/python-jose">Python</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/Spomky-Labs/jose">PHP</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/gesellix/Nimbus-JOSE-JWT">Java</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/cisco/node-jose">Node</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/airsidemobile/JOSESwift">Swift</a>
-                  </li>
-                </ul>
-                <p>
-                  <em>Please note those urls or websites do not belong to HSBC, use it on your own discretion. By clicking those urls or websites, it means you accept this terms and conditions.</em>
-                </p>
+                <p>{Content Section}</p>
               </div>
               <div class="doc-examples">
                 <section>
@@ -1738,10 +591,13 @@
       <span class="hljs-attr">&quot;sysMsg&quot;</span>: <span class="hljs-string">&quot;Success&quot;</span>
     },
     <span class="hljs-attr">&quot;payment&quot;</span>: {
-      <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>
+      <span class="hljs-attr">&quot;payment_scheme&quot;</span>: <span class="hljs-string">&quot;VI&quot;</span>,
+      <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+      <span class="hljs-attr">&quot;process_by&quot;</span>: <span class="hljs-string">&quot;VI&quot;</span>
     },
     <span class="hljs-attr">&quot;transaction&quot;</span>: {
-      <span class="hljs-attr">&quot;txnStatus&quot;</span>: <span class="hljs-string">&quot;A&quot;</span>,
+      <span class="hljs-attr">&quot;txnStatus&quot;</span>: <span class="hljs-string">&quot;Success&quot;</span>,
+      <span class="hljs-attr">&quot;txnSubStatus&quot;</span>: <span class="hljs-string">&quot;A&quot;</span>,
       <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F064577105001&quot;</span>,
       <span class="hljs-attr">&quot;txnDatetime&quot;</span>: <span class="hljs-number">20180105143711</span>
     },
@@ -1749,7 +605,21 @@
       <span class="hljs-attr">&quot;paidAgent&quot;</span>: <span class="hljs-string">&quot;BBL&quot;</span>,
       <span class="hljs-attr">&quot;apmRefNo&quot;</span>: <span class="hljs-string">&quot;11815866&quot;</span>,
       <span class="hljs-attr">&quot;paidChannel&quot;</span>: <span class="hljs-string">&quot;BANKCOUNTER&quot;</span>
-    }
+    },
+    <span class="hljs-attr">&quot;refund&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;rfdRefNo&quot;</span>: <span class="hljs-string">&quot;RFD00000123456789&quot;</span>,
+        <span class="hljs-attr">&quot;rfdStatus&quot;</span>: <span class="hljs-string">&quot;RF&quot;</span>,
+        <span class="hljs-attr">&quot;rfdAmount&quot;</span>: <span class="hljs-number">5000</span>,
+        <span class="hljs-attr">&quot;rfdDatetime&quot;</span>: <span class="hljs-string">&quot;2018-12-11T14:10:25+07:00&quot;</span>
+      },
+      {
+        <span class="hljs-attr">&quot;rfdRefNo&quot;</span>: <span class="hljs-string">&quot;RFD00000123456790&quot;</span>,
+        <span class="hljs-attr">&quot;rfdStatus&quot;</span>: <span class="hljs-string">&quot;RR&quot;</span>,
+        <span class="hljs-attr">&quot;rfdAmount&quot;</span>: <span class="hljs-number">15000</span>,
+        <span class="hljs-attr">&quot;rfdDatetime&quot;</span>: <span class="hljs-string">&quot;2018-12-12T14:10:25+07:00&quot;</span>
+      }
+    ]
   }
 }
 </code></pre>
@@ -3053,10 +1923,13 @@
       <span class="hljs-attr">&quot;sysMsg&quot;</span>: <span class="hljs-string">&quot;Success&quot;</span>
     },
     <span class="hljs-attr">&quot;payment&quot;</span>: {
-      <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>
+      <span class="hljs-attr">&quot;payment_scheme&quot;</span>: <span class="hljs-string">&quot;VI&quot;</span>,
+      <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+      <span class="hljs-attr">&quot;process_by&quot;</span>: <span class="hljs-string">&quot;VI&quot;</span>
     },
     <span class="hljs-attr">&quot;transaction&quot;</span>: {
-      <span class="hljs-attr">&quot;txnStatus&quot;</span>: <span class="hljs-string">&quot;A&quot;</span>,
+      <span class="hljs-attr">&quot;txnStatus&quot;</span>: <span class="hljs-string">&quot;Success&quot;</span>,
+      <span class="hljs-attr">&quot;txnSubStatus&quot;</span>: <span class="hljs-string">&quot;A&quot;</span>,
       <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F064577105001&quot;</span>,
       <span class="hljs-attr">&quot;txnDatetime&quot;</span>: <span class="hljs-number">20180105143711</span>
     },
@@ -3064,7 +1937,21 @@
       <span class="hljs-attr">&quot;paidAgent&quot;</span>: <span class="hljs-string">&quot;BBL&quot;</span>,
       <span class="hljs-attr">&quot;apmRefNo&quot;</span>: <span class="hljs-string">&quot;11815866&quot;</span>,
       <span class="hljs-attr">&quot;paidChannel&quot;</span>: <span class="hljs-string">&quot;BANKCOUNTER&quot;</span>
-    }
+    },
+    <span class="hljs-attr">&quot;refund&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;rfdRefNo&quot;</span>: <span class="hljs-string">&quot;RFD00000123456789&quot;</span>,
+        <span class="hljs-attr">&quot;rfdStatus&quot;</span>: <span class="hljs-string">&quot;RF&quot;</span>,
+        <span class="hljs-attr">&quot;rfdAmount&quot;</span>: <span class="hljs-number">5000</span>,
+        <span class="hljs-attr">&quot;rfdDatetime&quot;</span>: <span class="hljs-string">&quot;2018-12-11T14:10:25+07:00&quot;</span>
+      },
+      {
+        <span class="hljs-attr">&quot;rfdRefNo&quot;</span>: <span class="hljs-string">&quot;RFD00000123456790&quot;</span>,
+        <span class="hljs-attr">&quot;rfdStatus&quot;</span>: <span class="hljs-string">&quot;RR&quot;</span>,
+        <span class="hljs-attr">&quot;rfdAmount&quot;</span>: <span class="hljs-number">15000</span>,
+        <span class="hljs-attr">&quot;rfdDatetime&quot;</span>: <span class="hljs-string">&quot;2018-12-12T14:10:25+07:00&quot;</span>
+      }
+    ]
   }
 }
 </code></pre>
@@ -3110,14 +1997,29 @@
                     <dt data-property-name="txnStatus" class="has-description">
                       <span class="json-property-name">txnStatus:</span>
                       <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">Success</span>,
+                        <span class="json-property-enum-item">Failed</span>,
+                        <span class="json-property-enum-item">Settled</span>,
+                        <span class="json-property-enum-item">Refunded</span>,
+                        <span class="json-property-enum-item">Voided</span>,
+                        <span class="json-property-enum-item">Pending</span>,
+                        <span class="json-property-enum-item">Closed</span>
+                      </span>
                       <span class="json-property-range" title="Value limits"></span>
                       <span class="json-property-range" title="String length limits"> (up to 3 chars) </span>
                     </dt>
                     <dd>
-                      <p>Status of the transaction requested </p>
-                      <ul>
-                        <li>Conditional Field, will be returned if &quot;sysCode&quot; = &quot;00&quot; </li>
-                      </ul>
+                      <p>Main Status of the transaction requested.</p>
+                    </dd>
+                    <dt data-property-name="txnSubStatus" class="has-description">
+                      <span class="json-property-name">txnSubStatus:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 3 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>Subdivided Status of the transaction requested. For reference purposes.</p>
                     </dd>
                   </dl>
                 </section>
@@ -3126,7 +2028,8 @@
                 <section>
                   <h5>Example</h5>
                   <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
-  <span class="hljs-attr">&quot;txnStatus&quot;</span>: <span class="hljs-string">&quot;A&quot;</span>,
+  <span class="hljs-attr">&quot;txnStatus&quot;</span>: <span class="hljs-string">&quot;Success&quot;</span>,
+  <span class="hljs-attr">&quot;txnSubStatus&quot;</span>: <span class="hljs-string">&quot;A&quot;</span>,
   <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F064577105001&quot;</span>,
   <span class="hljs-attr">&quot;txnDatetime&quot;</span>: <span class="hljs-number">20180105143711</span>
 }
@@ -3218,13 +2121,30 @@
                       <span class="json-property-name">amount:</span>
                       <span class="json-property-type">integer</span>
                       <span class="json-property-range" title="Value limits">x ≤ 13</span>
-                      <span class="json-property-required"></span>
                     </dt>
                     <dd>
                       <p>Amount of the corresponding Payment Action </p>
                       <ul>
                         <li>Format: Eliminate punctuation and sign, support 2 decimal places, e.g. $10.50 = 1050 </li>
                       </ul>
+                    </dd>
+                    <dt data-property-name="payment_scheme" class="has-description">
+                      <span class="json-property-name">payment_scheme:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 2 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>Payment scheme code </p>
+                    </dd>
+                    <dt data-property-name="process_by" class="has-description">
+                      <span class="json-property-name">process_by:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 2 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>Payment scheme code which process the transaction </p>
                     </dd>
                   </dl>
                 </section>
@@ -3233,7 +2153,9 @@
                 <section>
                   <h5>Example</h5>
                   <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
-  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>
+  <span class="hljs-attr">&quot;payment_scheme&quot;</span>: <span class="hljs-string">&quot;VI&quot;</span>,
+  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+  <span class="hljs-attr">&quot;process_by&quot;</span>: <span class="hljs-string">&quot;VI&quot;</span>
 }
 </code></pre>
                   <!-- </div> -->
@@ -3373,6 +2295,79 @@
   <span class="hljs-attr">&quot;paidAgent&quot;</span>: <span class="hljs-string">&quot;BBL&quot;</span>,
   <span class="hljs-attr">&quot;apmRefNo&quot;</span>: <span class="hljs-string">&quot;11815866&quot;</span>,
   <span class="hljs-attr">&quot;paidChannel&quot;</span>: <span class="hljs-string">&quot;BANKCOUNTER&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-enq_rpn_refund_Obj" class="definition panel" data-traverse-target="definition-enq_rpn_refund_Obj">
+            <h2 class="panel-title">
+              <a name="/definitions/enq_rpn_refund_Obj"></a>enq_rpn_refund_Obj: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="rfdRefNo" class="has-description">
+                      <span class="json-property-name">rfdRefNo:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 30 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>Refund reference number returned when refund request was completed </p>
+                    </dd>
+                    <dt data-property-name="rfdStatus" class="has-description">
+                      <span class="json-property-name">rfdStatus:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 30 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>Refund status of the transaction requested, please see Status Code for details. </p>
+                    </dd>
+                    <dt data-property-name="rfdAmount" class="has-description">
+                      <span class="json-property-name">rfdAmount:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">1 ≤ x ≤ 9999999999999</span>
+                    </dt>
+                    <dd>
+                      <p>Returning Refund Amount</p>
+                      <ul>
+                        <li>Refund Amount should not exceed the value of total transaction amount</li>
+                        <li>Support multiple partial refund</li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="rfdDatetime" class="has-description">
+                      <span class="json-property-name">rfdDatetime:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 25 chars) </span>
+                    </dt>
+                    <dd>
+                      <p>Time of sending out this request</p>
+                      <ul>
+                        <li>Server system time. A <code>GMT+7</code> timezone information is appended to the end of the timestamp to indicate this time is a Thailand local time. Format: <code>yyyy-MM-dd&#39;T&#39;HH:mm:ss±hh:mm</code> </li>
+                      </ul>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;rfdRefNo&quot;</span>: <span class="hljs-string">&quot;RFD00000123456789&quot;</span>,
+  <span class="hljs-attr">&quot;rfdStatus&quot;</span>: <span class="hljs-string">&quot;RF&quot;</span>,
+  <span class="hljs-attr">&quot;rfdAmount&quot;</span>: <span class="hljs-number">5000</span>,
+  <span class="hljs-attr">&quot;rfdDatetime&quot;</span>: <span class="hljs-string">&quot;2018-12-12T14:10:25+07:00&quot;</span>
 }
 </code></pre>
                   <!-- </div> -->
@@ -4023,6 +3018,26 @@
                       </span>
                       <span class="json-property-range" title="Value limits"></span>
                     </dt>
+                    <dt data-property-name="refund">
+                      <span class="json-property-name">refund:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-array">
+                          <a class="json-schema-ref" href="#/definitions/enq_rpn_refund_Obj">enq_rpn_refund_Obj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">
+                          <span class="">
+                            <a class="json-schema-ref" href="#/definitions/enq_rpn_refund_Obj">enq_rpn_refund_Obj</a>
+                          </span>
+                        </span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
                   </dl>
                 </section>
               </div>
@@ -4042,10 +3057,13 @@
     <span class="hljs-attr">&quot;sysMsg&quot;</span>: <span class="hljs-string">&quot;Success&quot;</span>
   },
   <span class="hljs-attr">&quot;payment&quot;</span>: {
-    <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>
+    <span class="hljs-attr">&quot;payment_scheme&quot;</span>: <span class="hljs-string">&quot;VI&quot;</span>,
+    <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">1050</span>,
+    <span class="hljs-attr">&quot;process_by&quot;</span>: <span class="hljs-string">&quot;VI&quot;</span>
   },
   <span class="hljs-attr">&quot;transaction&quot;</span>: {
-    <span class="hljs-attr">&quot;txnStatus&quot;</span>: <span class="hljs-string">&quot;A&quot;</span>,
+    <span class="hljs-attr">&quot;txnStatus&quot;</span>: <span class="hljs-string">&quot;Success&quot;</span>,
+    <span class="hljs-attr">&quot;txnSubStatus&quot;</span>: <span class="hljs-string">&quot;A&quot;</span>,
     <span class="hljs-attr">&quot;txnRef&quot;</span>: <span class="hljs-string">&quot;0002900F064577105001&quot;</span>,
     <span class="hljs-attr">&quot;txnDatetime&quot;</span>: <span class="hljs-number">20180105143711</span>
   },
@@ -4053,7 +3071,21 @@
     <span class="hljs-attr">&quot;paidAgent&quot;</span>: <span class="hljs-string">&quot;BBL&quot;</span>,
     <span class="hljs-attr">&quot;apmRefNo&quot;</span>: <span class="hljs-string">&quot;11815866&quot;</span>,
     <span class="hljs-attr">&quot;paidChannel&quot;</span>: <span class="hljs-string">&quot;BANKCOUNTER&quot;</span>
-  }
+  },
+  <span class="hljs-attr">&quot;refund&quot;</span>: [
+    {
+      <span class="hljs-attr">&quot;rfdRefNo&quot;</span>: <span class="hljs-string">&quot;RFD00000123456789&quot;</span>,
+      <span class="hljs-attr">&quot;rfdStatus&quot;</span>: <span class="hljs-string">&quot;RF&quot;</span>,
+      <span class="hljs-attr">&quot;rfdAmount&quot;</span>: <span class="hljs-number">5000</span>,
+      <span class="hljs-attr">&quot;rfdDatetime&quot;</span>: <span class="hljs-string">&quot;2018-12-11T14:10:25+07:00&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;rfdRefNo&quot;</span>: <span class="hljs-string">&quot;RFD00000123456790&quot;</span>,
+      <span class="hljs-attr">&quot;rfdStatus&quot;</span>: <span class="hljs-string">&quot;RR&quot;</span>,
+      <span class="hljs-attr">&quot;rfdAmount&quot;</span>: <span class="hljs-number">15000</span>,
+      <span class="hljs-attr">&quot;rfdDatetime&quot;</span>: <span class="hljs-string">&quot;2018-12-12T14:10:25+07:00&quot;</span>
+    }
+  ]
 }
 </code></pre>
                   <!-- </div> -->
