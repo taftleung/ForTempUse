@@ -283,6 +283,73 @@ keytool -<span class="hljs-keyword">import</span> -alias &lt;ClientID_KeyID&gt; 
                 </table>
                 <h1 id="faq">FAQ</h1>
                 <p><code>Content Here</code></p>
+                <h1 id="lifecycle-of-cryptographic-keys">Lifecycle of Cryptographic Keys</h1>
+                <p>This section documented the Lifecycle of cryptographic keys
+                  <em>(similar steps are applied for HSBC&#39;s role)</em>
+                </p>
+                <ol>
+                  <li>Merchant/HSBC to create their private keystore</li>
+                  <li>Exchange of public key between Merchant/HSBC</li>
+                  <li>Key renewal process</li>
+                  <li>Key revoke process</li>
+                </ol>
+                <h2 id="cert-key-generation-and-exchange-with-hsbc">Cert/Key generation and exchange with HSBC</h2>
+                <p>The process explained below is for a customer application running on Java and has a web or app server which would call our API. Similar approaches can be followed for different technologies and platforms and there are tools available by certificate authorities in internet to generate CSR’s for different platforms and technologies.</p>
+                <p>The file names of <code>jks</code>, <code>csr</code> and <code>cer</code> given below are examples and can be changed by the customer.</p>
+                <p>Merchant to create Keystore with a new key pair, or to create a new key pair in an existing Keystore</p> <pre><code class="hljs">keytool -genkey -alias merchant1_0001 -keyalg RSA -keystore MCP_dev_merchant1.jks -keysize <span class="hljs-number">2048</span> -validity <span class="hljs-number">3650</span> -storepass &lt;your password&gt;
+</code></pre>
+                <p>This command will create a <code>.jks</code> file (<code>MCP_dev_merchant1.jks</code> in the above example), with alias <code>merchant1_0001</code> in keystore (with keyID <code>0001</code>).</p>
+                <p>Merchant / HSBC could maintain 2 versions of Keys to enable a smooth
+                  <strong>renewal</strong> process. Before an existing Key is
+                  <strong>expired</strong>, a new key could be effective. KeyID will need to be specified in the Transaction message.</p>
+                <p>This is the key store file. A new key store with alias will be created, if there does not exist any. If there is an existing keystore file with the customer, this command will create a new alias under that keystore.</p>
+                <p>The key type is recommended to be <code>RSA</code>, with key size of <code>2048</code>. For the key validity, it is up to the merchant&#39;s own security policy to define the period (in days). They can use that key store file to create a <code>CSR</code> as in step 2 if needed.</p>
+                <p>It is required to procure a public certificate from an authorized CA. Detail steps as below:</p>
+                <p>Generate CSR file:</p> <pre><code class="hljs">keytool -certreq -keyalg RSA -<span class="hljs-built_in">alias</span> MCP -<span class="hljs-built_in">file</span> MCP_dev_merchant1.csr -keystore MCP_dev_merchant1.jks
+</code></pre>
+                <p>The above command need to run to generate the CSR file <code>MCP_dev_merchant1.csr</code> from alias <code>MCP</code>. This will be generated in the location where the command is run. This csr file is sent by merchant to CA who procusing the certificate.</p>
+                <p>A password is required to be entered to generate csr from the key store file.</p>
+                <p>The following questions will be asked when the above command is run.
+                  <em>(In order to avoid duplicate of every merchant’s key DN, please replace TEST to merchant ID)</em>
+                </p> <pre><code class="hljs">Information required <span class="hljs-keyword">for</span> CSR generation
+--------------------------------------------------------------
+What is your first <span class="hljs-keyword">and</span> last name?
+  [Unknown]:  MERCHANT <span class="hljs-builtin-name">INFO</span>
+What is the name of your organizational unit?
+  [Unknown]:  MERCHANT <span class="hljs-builtin-name">INFO</span>
+What is the name of your organization?
+  [Unknown]:  MERCHANT <span class="hljs-builtin-name">INFO</span>
+What is the name of your City <span class="hljs-keyword">or</span> Locality?
+  [Unknown]:  CN
+What is the name of your State <span class="hljs-keyword">or</span> Province?
+  [Unknown]:  CN
+What is the two-letter country code <span class="hljs-keyword">for</span> this unit?
+  [Unknown]:  CN
+Is <span class="hljs-attribute">CN</span>=TEST, <span class="hljs-attribute">OU</span>=TEST, <span class="hljs-attribute">O</span>=TEST, <span class="hljs-attribute">L</span>=CN, <span class="hljs-attribute">ST</span>=CN, <span class="hljs-attribute">C</span>=CN correct? (type <span class="hljs-string">"yes"</span> <span class="hljs-keyword">or</span> <span class="hljs-string">"no"</span>)
+  [<span class="hljs-literal">no</span>]:  <span class="hljs-literal">yes</span>
+</code></pre>
+                <p>Import the procured certificate back into the Private Key, after
+                  <strong>CA</strong> Provides Signed / Authorized Public Certificate (e.g. <code>CA_Public.p7b</code>).</p>
+                <p>The p7b file generated by CA would need to be imported onto the key store file <code>MCP_dev_merchant1.jks</code> with the above command. This key store would be installed on the web or application servers location and configured with in the API calling webserver or application server.</p>
+                <p>Export Public key/cert and send to HSBC for key exchange</p> <pre><code class="hljs">#<span class="hljs-keyword">Export</span> <span class="hljs-keyword">Public</span> cert
+keytool -<span class="hljs-keyword">export</span> -keystore MCP_dev_merchant1.jks -<span class="hljs-keyword">alias</span> merchant1 -<span class="hljs-keyword">file</span> merchant1_0001.cer
+</code></pre>
+                <p>The above command export the public key/cert file with keyID e.g. <code>0001</code> (start from <code>0001</code>, for renew, <code>0002</code>, <code>0003</code>, ...), <code>merchant1_0001.cer</code>. </p>
+                <p>
+                  <em>Recommend to use VeriSign as CA. Please consult HSBC if you have preference on using another CA</em>
+                </p>
+                <p>Import the Public key/cert from HSBC into merchant’s Keystore (with keyID e.g. ‘0001’), by following command</p> <pre><code class="hljs">#<span class="hljs-keyword">Import</span> HSBC <span class="hljs-keyword">Public</span> cert
+keytool -<span class="hljs-keyword">import</span> -alias hsbc_0001 -<span class="hljs-keyword">file</span> hsbc_public.cer -keystore MCP_dev_merchant1.jks
+</code></pre>
+                <h2 id="cert-key-renew-with-hsbc-key-renewal-">Cert/Key renew with HSBC (Key renewal)</h2>
+                <p>Repeat step 2 &amp; 3 in section here.</p>
+                <p>Depends on the validate date of the Certificate (e.g. 2 years), it&#39;s required to Renew the key at least1 months before the expiry date, as we use Key ID to support multiple versions of keys, new key could be effective before the existing one is expired, once the setup is done in HSBC and upon our confirmation.</p>
+                <p>Similar steps are applied for HSBC to renew the key.</p>
+                <h2 id="cert-key-revoke-request-to-hsbc-key-revoke-">Cert/Key revoke request to HSBC (Key Revoke)</h2>
+                <p>Under special circumstance,
+                  <strong>revoke</strong> request could be sent to HSBC to mark the previous cert to be
+                  <strong>invalid</strong>. Advise the KeyID required to be revoked to HSBC (via secure email).</p>
+                <p>Repeat step 2 &amp; 3 in section here for HSBC to import the cert with new KeyID. Similar steps are applied for HSBC to revoke the key.</p>
               </div>
               <div class="doc-examples">
                 <section>
