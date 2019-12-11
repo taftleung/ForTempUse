@@ -70,6 +70,9 @@
           <a href="#definition-pay_rqt_merchant_Obj"> pay_rqt_merchant_Obj </a>
           <a href="#definition-pay_rqt_customer_Obj"> pay_rqt_customer_Obj </a>
           <a href="#definition-pay_rqt_order_Obj"> pay_rqt_order_Obj </a>
+          <a href="#definition-descriptionObj"> descriptionObj </a>
+          <a href="#definition-pay_rqt_other_Obj"> pay_rqt_other_Obj </a>
+          <a href="#definition-udfObj"> udfObj </a>
           <a href="#definition-paymentRespModel"> paymentRespModel </a>
           <a href="#definition-pay_rpn_txn_Obj"> pay_rpn_txn_Obj </a>
           <a href="#definition-pay_rpn_system_Obj"> pay_rpn_system_Obj </a>
@@ -81,6 +84,7 @@
           <a href="#definition-enq_rpn_txn_Obj"> enq_rpn_txn_Obj </a>
           <a href="#definition-enq_rpn_payment_Obj"> enq_rpn_payment_Obj </a>
           <a href="#definition-enq_rpn_cc_Obj"> enq_rpn_cc_Obj </a>
+          <a href="#definition-enq_rpn_other_Obj"> enq_rpn_other_Obj </a>
           <a href="#definition-enq_rpn_refund_Obj"> enq_rpn_refund_Obj </a>
           <a href="#definition-cancelReqtModel"> cancelReqtModel </a>
           <a href="#definition-cancel_rqt_txn_Obj"> cancel_rqt_txn_Obj </a>
@@ -101,6 +105,7 @@
           <a href="#definition-notif_rqt_merchant_Obj"> notif_rqt_merchant_Obj </a>
           <a href="#definition-notif_rqt_payment_Obj"> notif_rqt_payment_Obj </a>
           <a href="#definition-notif_rqt_cc_Obj"> notif_rqt_cc_Obj </a>
+          <a href="#definition-notif_rqt_other_Obj"> notif_rqt_other_Obj </a>
           <a href="#definition-statusRtnRespModel"> statusRtnRespModel </a>
           <a href="#definition-paymentRespModel_response"> paymentRespModel_response </a>
           <a href="#definition-enquiryRespModel_response"> enquiryRespModel_response </a>
@@ -129,7 +134,7 @@
                     <span>https</span>
                   </h5>
                   <h5>Version:
-                    <span>1.0</span>
+                    <span>0.9</span>
                   </h5>
                 </section>
               </div>
@@ -222,7 +227,10 @@
             <div class="doc-row">
               <div class="doc-copy">
                 <section class="swagger-operation-description">
-                  <p>This API returns a redirect link of the Secured Online Payment Page that aims to redirect Merchant&#39;s browser to the payment page. Customer then input all other necessary information (such as Credit Card details) in that page to complete the payment.</p>
+                  <p>
+                    <strong>Request Message:</strong> HSBC Field | GHL Field | Remark ---|---|--- txnRef | PaymentID | default_lang | LanguageCode | redirectUrl | MerchantReturnURL | Replace &quot;&amp;&quot; with &quot;;&quot; in DCMS notifyUrl | MerchantCallbackURL | Replace &quot;&amp;&quot; with &quot;;&quot; in DCMS country | n/a | currency | CurrencyCode | payment_option | PymtMethod | amount | Amount | payment_expiry | PageTimeout | merId | ServiceID | customer_name | CustName | customer_email | CustEmail | customer_phone | CustPhone | description | PaymentDesc | descriptions | n/a | Just store in DCMS TransactionType | n/a | Always submit &quot;SALE&quot; OrderNumber | n/a | CustIP | n/a |</p>
+                  <p>
+                    <strong>Response Message:</strong> HSBC Field | GHL Field | Remark ---|---|--- txnRef | n/a | Returned by DCMS sysCode | n/a | Returned by DCMS sysMsg | n/a | Returned by DCMS sysDatetime | n/a | Returned by DCMS redirectLink | n/a | Returned by DCMS</p>
                 </section>
               </div>
             </div>
@@ -284,7 +292,7 @@
     <span class="hljs-attr">&quot;country&quot;</span>: <span class="hljs-string">&quot;MY&quot;</span>,
     <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;MYR&quot;</span>,
     <span class="hljs-attr">&quot;payment_option&quot;</span>: <span class="hljs-string">&quot;ANY&quot;</span>,
-    <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">102000</span>,
+    <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">170000</span>,
     <span class="hljs-attr">&quot;payment_expiry&quot;</span>: <span class="hljs-number">780</span>
   },
   <span class="hljs-attr">&quot;merchant&quot;</span>: {
@@ -296,7 +304,33 @@
     <span class="hljs-attr">&quot;customer_phone&quot;</span>: <span class="hljs-string">&quot;60121235678&quot;</span>
   },
   <span class="hljs-attr">&quot;order&quot;</span>: {
-    <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;2 nights in The Ritz-Carlton, Langkawi&quot;</span>
+    <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;Proceed check out for your order #ORD-438UL748T6&quot;</span>,
+    <span class="hljs-attr">&quot;descriptions&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;product_name&quot;</span>: <span class="hljs-string">&quot;Product Item 1&quot;</span>,
+        <span class="hljs-attr">&quot;product_id&quot;</span>: <span class="hljs-string">&quot;PRO-ASDF-1234&quot;</span>,
+        <span class="hljs-attr">&quot;unitAmt&quot;</span>: <span class="hljs-number">10000</span>,
+        <span class="hljs-attr">&quot;unit&quot;</span>: <span class="hljs-number">2</span>,
+        <span class="hljs-attr">&quot;subAmt&quot;</span>: <span class="hljs-number">20000</span>
+      },
+      {
+        <span class="hljs-attr">&quot;product_name&quot;</span>: <span class="hljs-string">&quot;Product Item 2&quot;</span>,
+        <span class="hljs-attr">&quot;product_id&quot;</span>: <span class="hljs-string">&quot;PRO-JHGF-9876&quot;</span>,
+        <span class="hljs-attr">&quot;unitAmt&quot;</span>: <span class="hljs-number">50000</span>,
+        <span class="hljs-attr">&quot;unit&quot;</span>: <span class="hljs-number">3</span>,
+        <span class="hljs-attr">&quot;subAmt&quot;</span>: <span class="hljs-number">150000</span>
+      }
+    ]
+  },
+  <span class="hljs-attr">&quot;other&quot;</span>: {
+    <span class="hljs-attr">&quot;udfs&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 1&quot;</span>
+      },
+      {
+        <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
+      }
+    ]
   }
 }
 </code></pre>
@@ -461,7 +495,12 @@
             <div class="doc-row">
               <div class="doc-copy">
                 <section class="swagger-operation-description">
-                  <p>Merchant can optionally initiate payment status enquiry at any time after a payment request is submitted. This is used when Merchant wants to check payment status any time after a payment request or find no acknowledge message returned after a certain period of time. HSBC Mobile Collection will return the latest transaction status according to the transaction reference number Merchant provides.</p>
+                  <p>
+                    <strong>Request Message:</strong> HSBC Field | GHL Field | Remark ---|---|--- txnRef | PaymentID | merId | ServiceID | n/a | TransactionType | DCMS always pass &quot;QUERY&quot; n/a | PymtMethod | DCMS always pass &quot;ANY&quot; n/a | Amount | DCMS retrieve from DB record n/a | CurrencyCode | DCMS retrieve from DB record n/a | HashValue | DCMS to generate</p>
+                  <p>
+                    <strong>Response Message:</strong> HSBC Field | GHL Field | Remark ---|---|--- sysCode | n/a | DCMS checking (No pending since aggregator already handles it) sysMsg | n/a | DCMS checking txnRef | PaymentID | n/a | TxnExists | txnStatus | TxnStatus | txnMessage | TxnMessage (QueryDesc) | Return QueryDesc if TxnMessage is null amount | Amount | currency | CurrencyCode | payment_datetime | RespTime | Convert to JSON time format payment_option | PymtMethod | issuing_bank | IssuingBank | optional acquirer | Acquirer | optional bank_auth_code | AuthCode | optional brand | CardType | Conditional mcn | CardNoMask | Conditional n/a | CardHolder | sensitive information, do not store in DB n/a | CardExp | sensitive information, do not store in DB n/a | TxnID | *To be discussed, this ID is generated by eGHL n/a | HashValue2 | DCMS to verify rfdTotalAmount | TotalRefundAmount | Conditional</p>
+                  <p>
+                    <strong>GHL Response Sample:</strong> GHL Response Field Name | GHL Response Field Value ---|--- TxnExists | 0 QueryDesc | Transaction exists TransactionType | QUERY PymtMethod | CC ServiceID | HBC PaymentID | GHL-PAY-NUTR823563 OrderNumber | GHL-PAY-NUTR823563 Amount | 1000.00 CurrencyCode | MYR TxnID | HBC0000GHLPAYNUTR823563 IssuingBank | ITS%20BANK TxnStatus | 0 AuthCode | 831000 BankRefNo | 5750121062406302703005 TxnMessage | Request%20was%20processed%20successfully. HashValue | 446943d67a24253354aafb63fbcd7d7b4e41d6d0f2a29a458d921411a215e5a5 SessionID | zydfrx1e0i3rt135xfqlnxfw HashValue2 | 3c4c4adac6c671fea2053cc7d4b5ddc8d77a163bef0242290da9c03b672e79e8 Acquirer | GPay RespTime | 2019-11-29%2015%3A21%3A36 CardNoMask | 400005XXXXXX5556 CardType | VISA%20DEBIT CardHolder | wert%20werty CardExp | 202005</p>
                 </section>
               </div>
             </div>
@@ -607,7 +646,7 @@
       <span class="hljs-attr">&quot;txnMessage&quot;</span>: <span class="hljs-string">&quot;Request was processed successfully.&quot;</span>
     },
     <span class="hljs-attr">&quot;payment&quot;</span>: {
-      <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">102000</span>,
+      <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">170000</span>,
       <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;MYR&quot;</span>,
       <span class="hljs-attr">&quot;payment_datetime&quot;</span>: <span class="hljs-string">&quot;2019-12-12T14:10:25+08:00&quot;</span>,
       <span class="hljs-attr">&quot;payment_option&quot;</span>: <span class="hljs-string">&quot;CC&quot;</span>,
@@ -618,6 +657,16 @@
     <span class="hljs-attr">&quot;cc&quot;</span>: {
       <span class="hljs-attr">&quot;brand&quot;</span>: <span class="hljs-string">&quot;VISA&quot;</span>,
       <span class="hljs-attr">&quot;mcn&quot;</span>: <span class="hljs-string">&quot;403587XXXXXX4977&quot;</span>
+    },
+    <span class="hljs-attr">&quot;other&quot;</span>: {
+      <span class="hljs-attr">&quot;udfs&quot;</span>: [
+        {
+          <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 1&quot;</span>
+        },
+        {
+          <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
+        }
+      ]
     },
     <span class="hljs-attr">&quot;refund&quot;</span>: {
       <span class="hljs-attr">&quot;rfdTotalAmount&quot;</span>: <span class="hljs-number">500000</span>
@@ -696,7 +745,12 @@
             <div class="doc-row">
               <div class="doc-copy">
                 <section class="swagger-operation-description">
-                  <p>This API is used to send a cancellation (a.k.a Sale Reversal) request for an unsettled transaction.</p>
+                  <p>
+                    <strong>Request Message:</strong> HSBC Field | GHL Field | Remark ---|---|--- txnRef | PaymentID | merId | ServiceID | n/a | TransactionType | DCMS always pass &quot;RSALE&quot; n/a | PymtMethod | DCMS always pass &quot;ANY&quot; n/a | Amount | DCMS retrieve from DB record n/a | CurrencyCode | DCMS retrieve from DB record n/a | HashValue | DCMS to generate</p>
+                  <p>
+                    <strong>Response Message:</strong> HSBC Field | GHL Field | Remark ---|---|--- txnRef | PaymentID | txnStatus | TxnStatus | txnMessage | TxnMessage | amount | Amount | currency | CurrencyCode | payment_option | PymtMethod | issuing_bank | IssuingBank | optional acquirer | Acquirer | optional bank_auth_code | AuthCode | n/a | TxnID | *To be discussed, this ID is generated by eGHL n/a | HashValue2 | DCMS to verify</p>
+                  <p>
+                    <strong>GHL Response Sample:</strong> GHL Response Field Name | GHL Response Field Value ---|--- TransactionType | RSALE ServiceID | HBC PymtMethod | CC PaymentID | GHL-PAY-KCUI916784 Amount | 1000.00 CurrencyCode | MYR IssuingBank | XXXX Acquirer | GPay TxnID | HBC0000GHLPAYKCUI916784 TxnStatus | 0 AuthCode | HBC000 TxnMessage | RSale%20Success HashValue | 1cdf1420e9ce44770966061aa9683da903c2bc4e4d29c5f7b78298b5c145582c HashValue2 | 35e9278535bcfbe50b3a6f182047e610e42e311a8f3c3e547e375990537ee29f</p>
                 </section>
               </div>
             </div>
@@ -923,7 +977,12 @@
             <div class="doc-row">
               <div class="doc-copy">
                 <section class="swagger-operation-description">
-                  <p>This API is used to send a refund request for a previously settled transaction. It supports both full and multiple partial refund. Before requesting a new partial refund, any prior partial refund request must have been settled.</p>
+                  <p>
+                    <strong>Request Message:</strong> HSBC Field | GHL Field | Remark ---|---|--- txnRef | PaymentID | merId | ServiceID | n/a | TransactionType | DCMS always pass &quot;REFUND&quot; n/a | PymtMethod | DCMS always pass &quot;ANY&quot; n/a | Amount | DCMS retrieve from DB record n/a | CurrencyCode | DCMS retrieve from DB record n/a | HashValue | DCMS to generate</p>
+                  <p>
+                    <strong>Response Message:</strong> HSBC Field | GHL Field | Remark ---|---|--- txnRef | PaymentID | txnStatus | TxnStatus | txnMessage | TxnMessage amount | Amount | currency | CurrencyCode | payment_option | PymtMethod | issuing_bank | IssuingBank | bank_auth_code | AuthCode | n/a | TxnID | *To be discussed, this ID is generated by eGHL n/a | HashValue2 | DCMS to verify</p>
+                  <p>
+                    <strong>GHL Response Sample:</strong> GHL Response Field Name | GHL Response Field Value ---|--- TransactionType | REFUND ServiceID | HBC PymtMethod | CC PaymentID | GHL-PAY-OUNI364819 Amount | 1000.00 CurrencyCode | MYR IssuingBank | HostSim TxnID | HBC0000GHLPAYOUNI364819 TxnStatus | 1 AuthCode | HBC000 TxnMessage | Refund is not allowed before host settlement time HashValue | a5640fc190a40e0cc4c6f67a2118252378ea53ab38d653eb5644346cd18a9541 HashValue2 | 596f61b8467482285d014b3b9ce9e36becc3854d2a591b19cb2b2458d5118ea4</p>
                 </section>
               </div>
             </div>
@@ -1154,7 +1213,10 @@
             <div class="doc-row">
               <div class="doc-copy">
                 <section class="swagger-operation-description">
-                  <p>Payment status will be pushed back to Merchant by asynchronous callback once Mobile Collection completes reconciliation with bank and receives a payment result.</p>
+                  <p>
+                    <strong>Request Message:</strong> HSBC Field | GHL Field | Remark ---|---|--- txnRef | PaymentID | txnStatus | TxnStatus | txnMessage | TxnMessage merId | ServiceID | amount | Amount | currency | CurrencyCode | payment_datetime | RespTime payment_option | PymtMethod | issuing_bank | IssuingBank | optional acquirer | Acquirer | optional bank_auth_code | AuthCode | optional brand | CardType | Conditional mcn | CardNoMask | Conditional n/a | CardHolder | sensitive information, do not store in DB n/a | CardExp | sensitive information, do not store in DB n/a | TxnID | *To be discussed, this ID is generated by eGHL n/a | HashValue2 | DCMS to verify</p>
+                  <p>
+                    <strong>GHL Message Sample:</strong> GHL Response Field Name | GHL Response Field Value ---|--- TransactionType | SALE PymtMethod | CC ServiceID | HBC PaymentID | GHL-PAY-PDUG187660 OrderNumber | GHL-PAY-PDUG187660 Amount | 1000.00 CurrencyCode | MYR HashValue | 5fce4e2a139a0c24fe76499d357aea056c231a79b536601bb0b6160f03dc190c HashValue2 | 99c2cb3e5a24765647907ab8ad1d9ba48f5281bdf7cd6329588f25b60aeb3de3 TxnID | HBC0000GHLPAYPDUG187660 Acquirer | GPay TxnStatus | 0 AuthCode | 831000 BankRefNo | 5750079272786297503006 RespTime | 2019-11-29+14%3A11%3A59 TxnMessage | Transaction+Successful CardNoMask | 411111XXXXXX1111 CardType | VISA+ IssuingBank | JPMORGAN+CHASE+BANK CardHolder | wer+erth CardExp | 202005</p>
                 </section>
               </div>
             </div>
@@ -1224,6 +1286,16 @@
   <span class="hljs-attr">&quot;cc&quot;</span>: {
     <span class="hljs-attr">&quot;brand&quot;</span>: <span class="hljs-string">&quot;VISA&quot;</span>,
     <span class="hljs-attr">&quot;mcn&quot;</span>: <span class="hljs-string">&quot;403587XXXXXX4977&quot;</span>
+  },
+  <span class="hljs-attr">&quot;other&quot;</span>: {
+    <span class="hljs-attr">&quot;udfs&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 1&quot;</span>
+      },
+      {
+        <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
+      }
+    ]
   }
 }
 </code></pre>
@@ -1494,6 +1566,15 @@
                       <span class="json-property-range" title="Value limits"></span>
                       <span class="json-property-required"></span>
                     </dt>
+                    <dt data-property-name="other">
+                      <span class="json-property-name">other:</span>
+                      <span class="json-property-type">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/pay_rqt_other_Obj">pay_rqt_other_Obj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
                   </dl>
                 </section>
               </div>
@@ -1513,7 +1594,7 @@
     <span class="hljs-attr">&quot;country&quot;</span>: <span class="hljs-string">&quot;MY&quot;</span>,
     <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;MYR&quot;</span>,
     <span class="hljs-attr">&quot;payment_option&quot;</span>: <span class="hljs-string">&quot;ANY&quot;</span>,
-    <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">102000</span>,
+    <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">170000</span>,
     <span class="hljs-attr">&quot;payment_expiry&quot;</span>: <span class="hljs-number">780</span>
   },
   <span class="hljs-attr">&quot;merchant&quot;</span>: {
@@ -1525,7 +1606,33 @@
     <span class="hljs-attr">&quot;customer_phone&quot;</span>: <span class="hljs-string">&quot;60121235678&quot;</span>
   },
   <span class="hljs-attr">&quot;order&quot;</span>: {
-    <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;2 nights in The Ritz-Carlton, Langkawi&quot;</span>
+    <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;Proceed check out for your order #ORD-438UL748T6&quot;</span>,
+    <span class="hljs-attr">&quot;descriptions&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;product_name&quot;</span>: <span class="hljs-string">&quot;Product Item 1&quot;</span>,
+        <span class="hljs-attr">&quot;product_id&quot;</span>: <span class="hljs-string">&quot;PRO-ASDF-1234&quot;</span>,
+        <span class="hljs-attr">&quot;unitAmt&quot;</span>: <span class="hljs-number">10000</span>,
+        <span class="hljs-attr">&quot;unit&quot;</span>: <span class="hljs-number">2</span>,
+        <span class="hljs-attr">&quot;subAmt&quot;</span>: <span class="hljs-number">20000</span>
+      },
+      {
+        <span class="hljs-attr">&quot;product_name&quot;</span>: <span class="hljs-string">&quot;Product Item 2&quot;</span>,
+        <span class="hljs-attr">&quot;product_id&quot;</span>: <span class="hljs-string">&quot;PRO-JHGF-9876&quot;</span>,
+        <span class="hljs-attr">&quot;unitAmt&quot;</span>: <span class="hljs-number">50000</span>,
+        <span class="hljs-attr">&quot;unit&quot;</span>: <span class="hljs-number">3</span>,
+        <span class="hljs-attr">&quot;subAmt&quot;</span>: <span class="hljs-number">150000</span>
+      }
+    ]
+  },
+  <span class="hljs-attr">&quot;other&quot;</span>: {
+    <span class="hljs-attr">&quot;udfs&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 1&quot;</span>
+      },
+      {
+        <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
+      }
+    ]
   }
 }
 </code></pre>
@@ -1826,7 +1933,7 @@
   <span class="hljs-attr">&quot;country&quot;</span>: <span class="hljs-string">&quot;MY&quot;</span>,
   <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;MYR&quot;</span>,
   <span class="hljs-attr">&quot;payment_option&quot;</span>: <span class="hljs-string">&quot;ANY&quot;</span>,
-  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">102000</span>,
+  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">170000</span>,
   <span class="hljs-attr">&quot;payment_expiry&quot;</span>: <span class="hljs-number">780</span>
 }
 </code></pre>
@@ -1954,7 +2061,125 @@
                       <span class="json-property-required"></span>
                     </dt>
                     <dd>
-                      <p>Order&#39;s Descriptions</p>
+                      <p>A Brief Description of the order that will be displayed in the Payment Page</p>
+                    </dd>
+                    <dt data-property-name="descriptions">
+                      <span class="json-property-name">descriptions:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-array">
+                          <a class="json-schema-ref" href="#/definitions/descriptionObj">descriptionObj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">
+                          <span class="">
+                            <a class="json-schema-ref" href="#/definitions/descriptionObj">descriptionObj</a>
+                          </span>
+                        </span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;Proceed check out for your order #ORD-438UL748T6&quot;</span>,
+  <span class="hljs-attr">&quot;descriptions&quot;</span>: [
+    {
+      <span class="hljs-attr">&quot;product_name&quot;</span>: <span class="hljs-string">&quot;Product Item 1&quot;</span>,
+      <span class="hljs-attr">&quot;product_id&quot;</span>: <span class="hljs-string">&quot;PRO-ASDF-1234&quot;</span>,
+      <span class="hljs-attr">&quot;unitAmt&quot;</span>: <span class="hljs-number">10000</span>,
+      <span class="hljs-attr">&quot;unit&quot;</span>: <span class="hljs-number">2</span>,
+      <span class="hljs-attr">&quot;subAmt&quot;</span>: <span class="hljs-number">20000</span>
+    },
+    {
+      <span class="hljs-attr">&quot;product_name&quot;</span>: <span class="hljs-string">&quot;Product Item 2&quot;</span>,
+      <span class="hljs-attr">&quot;product_id&quot;</span>: <span class="hljs-string">&quot;PRO-JHGF-9876&quot;</span>,
+      <span class="hljs-attr">&quot;unitAmt&quot;</span>: <span class="hljs-number">50000</span>,
+      <span class="hljs-attr">&quot;unit&quot;</span>: <span class="hljs-number">3</span>,
+      <span class="hljs-attr">&quot;subAmt&quot;</span>: <span class="hljs-number">150000</span>
+    }
+  ]
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-descriptionObj" class="definition panel" data-traverse-target="definition-descriptionObj">
+            <h2 class="panel-title">
+              <a name="/definitions/descriptionObj"></a>descriptionObj: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="product_name" class="has-description">
+                      <span class="json-property-name">product_name:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 200 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Product Item Name / Description</p>
+                    </dd>
+                    <dt data-property-name="product_id" class="has-description">
+                      <span class="json-property-name">product_id:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 50 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Product Numner / ID</p>
+                    </dd>
+                    <dt data-property-name="unitAmt" class="has-description">
+                      <span class="json-property-name">unitAmt:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">1 ≤ x ≤ 99999999999999</span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Payment Amount in 2 decimal places regardless whether the currency has decimal places or not</p>
+                      <ul>
+                        <li>Notice: Do not use sign. For example, input <code>10000</code> instead of <code>100.00</code></li>
+                      </ul>
+                    </dd>
+                    <dt data-property-name="unit" class="has-description">
+                      <span class="json-property-name">unit:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">1 ≤ x ≤ 9999</span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>No. of Unit </p>
+                    </dd>
+                    <dt data-property-name="subAmt" class="has-description">
+                      <span class="json-property-name">subAmt:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">1 ≤ x ≤ 99999999999999</span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Payment Amount in 2 decimal places regardless whether the currency has decimal places or not</p>
+                      <ul>
+                        <li>Notice: Do not use sign. For example, input <code>10000</code> instead of <code>100.00</code></li>
+                      </ul>
                     </dd>
                   </dl>
                 </section>
@@ -1963,7 +2188,107 @@
                 <section>
                   <h5>Example</h5>
                   <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
-  <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;2 nights in The Ritz-Carlton, Langkawi&quot;</span>
+  <span class="hljs-attr">&quot;product_name&quot;</span>: <span class="hljs-string">&quot;Product Item 1&quot;</span>,
+  <span class="hljs-attr">&quot;product_id&quot;</span>: <span class="hljs-string">&quot;PRO-ASDF-1234&quot;</span>,
+  <span class="hljs-attr">&quot;unitAmt&quot;</span>: <span class="hljs-number">10000</span>,
+  <span class="hljs-attr">&quot;unit&quot;</span>: <span class="hljs-number">2</span>,
+  <span class="hljs-attr">&quot;subAmt&quot;</span>: <span class="hljs-number">20000</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-pay_rqt_other_Obj" class="definition panel" data-traverse-target="definition-pay_rqt_other_Obj">
+            <h2 class="panel-title">
+              <a name="/definitions/pay_rqt_other_Obj"></a>pay_rqt_other_Obj: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="udfs" class="has-description">
+                      <span class="json-property-name">udfs:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-array">
+                          <a class="json-schema-ref" href="#/definitions/udfObj">udfObj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Array of User Defined Field</p>
+                    </dd>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">
+                          <span class="">
+                            <a class="json-schema-ref" href="#/definitions/udfObj">udfObj</a>
+                          </span>
+                        </span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;udfs&quot;</span>: [
+    {
+      <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 1&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
+    }
+  ]
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-udfObj" class="definition panel" data-traverse-target="definition-udfObj">
+            <h2 class="panel-title">
+              <a name="/definitions/udfObj"></a>udfObj: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="udf" class="has-description">
+                      <span class="json-property-name">udf:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-range" title="String length limits"> (up to 200 chars) </span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Merchant Defined Value. These values will not processed in HSBC system but only returned in Enquiry response and Callback Notification.</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
 }
 </code></pre>
                   <!-- </div> -->
@@ -2107,6 +2432,14 @@
                           <tr>
                             <td>000000</td>
                             <td>Request Successful</td>
+                          </tr>
+                          <tr>
+                            <td>800110</td>
+                            <td>Invalid Calculation Found in Product Sub-Amount</td>
+                          </tr>
+                          <tr>
+                            <td>800120</td>
+                            <td>Invalid Calculation Found in Order Total Amount</td>
                           </tr>
                           <tr>
                             <td>900030</td>
@@ -2351,7 +2684,7 @@
       <span class="hljs-attr">&quot;txnMessage&quot;</span>: <span class="hljs-string">&quot;Request was processed successfully.&quot;</span>
     },
     <span class="hljs-attr">&quot;payment&quot;</span>: {
-      <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">102000</span>,
+      <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">170000</span>,
       <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;MYR&quot;</span>,
       <span class="hljs-attr">&quot;payment_datetime&quot;</span>: <span class="hljs-string">&quot;2019-12-12T14:10:25+08:00&quot;</span>,
       <span class="hljs-attr">&quot;payment_option&quot;</span>: <span class="hljs-string">&quot;CC&quot;</span>,
@@ -2362,6 +2695,16 @@
     <span class="hljs-attr">&quot;cc&quot;</span>: {
       <span class="hljs-attr">&quot;brand&quot;</span>: <span class="hljs-string">&quot;VISA&quot;</span>,
       <span class="hljs-attr">&quot;mcn&quot;</span>: <span class="hljs-string">&quot;403587XXXXXX4977&quot;</span>
+    },
+    <span class="hljs-attr">&quot;other&quot;</span>: {
+      <span class="hljs-attr">&quot;udfs&quot;</span>: [
+        {
+          <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 1&quot;</span>
+        },
+        {
+          <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
+        }
+      ]
     },
     <span class="hljs-attr">&quot;refund&quot;</span>: {
       <span class="hljs-attr">&quot;rfdTotalAmount&quot;</span>: <span class="hljs-number">500000</span>
@@ -2674,7 +3017,7 @@
                 <section>
                   <h5>Example</h5>
                   <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
-  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">102000</span>,
+  <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">170000</span>,
   <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;MYR&quot;</span>,
   <span class="hljs-attr">&quot;payment_datetime&quot;</span>: <span class="hljs-string">&quot;2019-12-12T14:10:25+08:00&quot;</span>,
   <span class="hljs-attr">&quot;payment_option&quot;</span>: <span class="hljs-string">&quot;CC&quot;</span>,
@@ -2733,6 +3076,64 @@
                   <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
   <span class="hljs-attr">&quot;brand&quot;</span>: <span class="hljs-string">&quot;VISA&quot;</span>,
   <span class="hljs-attr">&quot;mcn&quot;</span>: <span class="hljs-string">&quot;403587XXXXXX4977&quot;</span>
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-enq_rpn_other_Obj" class="definition panel" data-traverse-target="definition-enq_rpn_other_Obj">
+            <h2 class="panel-title">
+              <a name="/definitions/enq_rpn_other_Obj"></a>enq_rpn_other_Obj: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="udfs" class="has-description">
+                      <span class="json-property-name">udfs:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-array">
+                          <a class="json-schema-ref" href="#/definitions/udfObj">udfObj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Array of User Defined Field</p>
+                    </dd>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">
+                          <span class="">
+                            <a class="json-schema-ref" href="#/definitions/udfObj">udfObj</a>
+                          </span>
+                        </span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;udfs&quot;</span>: [
+    {
+      <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 1&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
+    }
+  ]
 }
 </code></pre>
                   <!-- </div> -->
@@ -3899,6 +4300,15 @@
                       </span>
                       <span class="json-property-range" title="Value limits"></span>
                     </dt>
+                    <dt data-property-name="other">
+                      <span class="json-property-name">other:</span>
+                      <span class="json-property-type">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/notif_rqt_other_Obj">notif_rqt_other_Obj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
                   </dl>
                 </section>
               </div>
@@ -3926,6 +4336,16 @@
   <span class="hljs-attr">&quot;cc&quot;</span>: {
     <span class="hljs-attr">&quot;brand&quot;</span>: <span class="hljs-string">&quot;VISA&quot;</span>,
     <span class="hljs-attr">&quot;mcn&quot;</span>: <span class="hljs-string">&quot;403587XXXXXX4977&quot;</span>
+  },
+  <span class="hljs-attr">&quot;other&quot;</span>: {
+    <span class="hljs-attr">&quot;udfs&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 1&quot;</span>
+      },
+      {
+        <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
+      }
+    ]
   }
 }
 </code></pre>
@@ -4239,6 +4659,65 @@
               </div>
             </div>
           </div>
+          <div id="definition-notif_rqt_other_Obj" class="definition panel" data-traverse-target="definition-notif_rqt_other_Obj">
+            <h2 class="panel-title">
+              <a name="/definitions/notif_rqt_other_Obj"></a>notif_rqt_other_Obj: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="udfs" class="has-description">
+                      <span class="json-property-name">udfs:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-array">
+                          <a class="json-schema-ref" href="#/definitions/udfObj">udfObj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dd>
+                      <p>Array of User Defined Field</p>
+                    </dd>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">
+                          <span class="">
+                            <a class="json-schema-ref" href="#/definitions/udfObj">udfObj</a>
+                          </span>
+                        </span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> --><pre><code class="hljs lang-json">{
+  <span class="hljs-attr">&quot;udfs&quot;</span>: [
+    {
+      <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 1&quot;</span>
+    },
+    {
+      <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
+    }
+  ]
+}
+</code></pre>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
           <div id="definition-statusRtnRespModel" class="definition panel" data-traverse-target="definition-statusRtnRespModel">
             <h2 class="panel-title">
               <a name="/definitions/statusRtnRespModel"></a>statusRtnRespModel: object
@@ -4385,6 +4864,15 @@
                       </span>
                       <span class="json-property-range" title="Value limits"></span>
                     </dt>
+                    <dt data-property-name="other">
+                      <span class="json-property-name">other:</span>
+                      <span class="json-property-type">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/enq_rpn_other_Obj">enq_rpn_other_Obj</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
                     <dt data-property-name="refund">
                       <span class="json-property-name">refund:</span>
                       <span class="json-property-type">
@@ -4411,7 +4899,7 @@
     <span class="hljs-attr">&quot;txnMessage&quot;</span>: <span class="hljs-string">&quot;Request was processed successfully.&quot;</span>
   },
   <span class="hljs-attr">&quot;payment&quot;</span>: {
-    <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">102000</span>,
+    <span class="hljs-attr">&quot;amount&quot;</span>: <span class="hljs-number">170000</span>,
     <span class="hljs-attr">&quot;currency&quot;</span>: <span class="hljs-string">&quot;MYR&quot;</span>,
     <span class="hljs-attr">&quot;payment_datetime&quot;</span>: <span class="hljs-string">&quot;2019-12-12T14:10:25+08:00&quot;</span>,
     <span class="hljs-attr">&quot;payment_option&quot;</span>: <span class="hljs-string">&quot;CC&quot;</span>,
@@ -4422,6 +4910,16 @@
   <span class="hljs-attr">&quot;cc&quot;</span>: {
     <span class="hljs-attr">&quot;brand&quot;</span>: <span class="hljs-string">&quot;VISA&quot;</span>,
     <span class="hljs-attr">&quot;mcn&quot;</span>: <span class="hljs-string">&quot;403587XXXXXX4977&quot;</span>
+  },
+  <span class="hljs-attr">&quot;other&quot;</span>: {
+    <span class="hljs-attr">&quot;udfs&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 1&quot;</span>
+      },
+      {
+        <span class="hljs-attr">&quot;udf&quot;</span>: <span class="hljs-string">&quot;User Input Value 2&quot;</span>
+      }
+    ]
   },
   <span class="hljs-attr">&quot;refund&quot;</span>: {
     <span class="hljs-attr">&quot;rfdTotalAmount&quot;</span>: <span class="hljs-number">500000</span>
