@@ -1,0 +1,1001 @@
+{
+	"info": {
+		"_postman_id": "97b0d193-ef48-46ef-9bf9-085a35bbe906",
+		"name": "PayMe API Version 0.12",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12409896"
+	},
+	"item": [
+		{
+			"name": "Get Access Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"access_token\", jsonData.accessToken);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Api-Version",
+						"value": "{{version}}"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_secret}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{api_base_url}}/oauth2/token",
+					"host": [
+						"{{api_base_url}}"
+					],
+					"path": [
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Payment Request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"paymentRequestId\", jsonData.paymentRequestId);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"    function computeHttpSignature(config, headerHash) {",
+							"      var template = 'keyId=\"${keyId}\",algorithm=\"${algorithm}\",headers=\"${headers}\",signature=\"${signature}\"',",
+							"          sig = template;",
+							"    ",
+							"      // compute sig here",
+							"      var signingBase = '';",
+							"      config.headers.forEach(function(h){",
+							"        if (signingBase !== '') {",
+							"            signingBase += '\\n';",
+							"            ",
+							"        }",
+							"        signingBase += h.toLowerCase() + \": \" + headerHash[h];",
+							"      });",
+							"    ",
+							"      var hashf = (function() {",
+							"          switch (config.algorithm) {",
+							"            case 'hmac-sha1': return CryptoJS.HmacSHA1;",
+							"            case 'hmac-sha256': return CryptoJS.HmacSHA256;",
+							"            case 'hmac-sha512': return CryptoJS.HmacSHA512;",
+							"            default : return null;",
+							"          }",
+							"        }());",
+							"    ",
+							"      var hash = hashf(signingBase, config.secretkey);",
+							"      var signatureOptions = {",
+							"            keyId : config.keyId,",
+							"            algorithm: config.algorithm,",
+							"            headers: config.headers,",
+							"            signature : CryptoJS.enc.Base64.stringify(hash)",
+							"          };",
+							"    ",
+							"      // build sig string here",
+							"      Object.keys(signatureOptions).forEach(function(key) {",
+							"        var pattern = \"${\" + key + \"}\",",
+							"            value = (typeof signatureOptions[key] != 'string') ? signatureOptions[key].join(' ') : signatureOptions[key];",
+							"        sig = sig.replace(pattern, value);",
+							"      });",
+							"    ",
+							"      return sig;",
+							"    }",
+							"    ",
+							"    var targetUrl = '/payments/paymentrequests'",
+							"    var method = request.method.toLowerCase();",
+							"    var sha256digest = CryptoJS.SHA256(request.data);",
+							"    var base64sha256 = CryptoJS.enc.Base64.stringify(sha256digest);",
+							"    var computedDigest = 'SHA-256=' + base64sha256;",
+							"    var content_length =  JSON.stringify(request.data).length;",
+							"    ",
+							"    var headerHash = {",
+							"          'Request-Date-Time' : environment['utc_now'],",
+							"          'Api-Version': environment['version'],",
+							"          'Trace-Id': environment['trace_id'],",
+							"          'Authorization': 'Bearer ' + environment['access_token'],",
+							"          'Digest' : computedDigest,",
+							"          '(request-target)' : method + ' ' + targetUrl",
+							"        };",
+							"    ",
+							"    var config = {",
+							"          algorithm : 'hmac-sha256',",
+							"          keyId : environment['signing_key_id'],",
+							"          secretkey : CryptoJS.enc.Base64.parse(environment['signing_key']),",
+							"          headers : ['(request-target)', 'Api-Version', 'Request-Date-Time', 'Trace-Id', 'Authorization', 'Digest']",
+							"        };",
+							"    ",
+							"    pm.environment.set('signature', computeHttpSignature(config, headerHash));",
+							"    pm.environment.set('digest', computedDigest);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Api-Version",
+						"value": "{{version}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-US"
+					},
+					{
+						"key": "Trace-Id",
+						"value": "{{trace_id}}"
+					},
+					{
+						"key": "Request-Date-Time",
+						"value": "{{utc_now}}"
+					},
+					{
+						"key": "Signature",
+						"value": "{{signature}}"
+					},
+					{
+						"key": "Digest",
+						"value": "{{digest}}",
+						"type": "text"
+					},
+					{
+						"key": "X-HSBC-Merchant-Id",
+						"value": "e4b1439a-4038-466b-baa8-d287bcca739c",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"totalAmount\": 3.77,\r\n    \"currencyCode\": \"HKD\",\r\n    \"effectiveDuration\":600,\r\n    \"notificationUri\":\"https://webhook.site/a8355331-d748-4951-bf6b-7e02f6fce605\",\r\n    \"appSuccessCallback\":\"www.example.com/success\",\r\n     \"appFailCallback\":\"www.example.com/failure\",\r\n    \"merchantData\": {\r\n        \"orderId\": \"ID12345678\",\r\n        \"orderDescription\": \"Description displayed to customer\",\r\n        \"additionalData\": \"Arbitrary additional data - logged but not displayed\",\r\n        \"shoppingCart\": [\r\n            {\r\n                \"category1\": \"General categorization\",\r\n                \"category2\": \"More specific categorization\",\r\n                \"category3\": \"Highly specific categorization\",\r\n                \"quantity\": 1,\r\n                \"price\": 1,\r\n                \"name\": \"Item 1\",\r\n                \"sku\": \"SKU987654321\",\r\n                \"currencyCode\": \"HKD\"\r\n            },\r\n            {\r\n                \"category1\": \"General categorization\",\r\n                \"category2\": \"More specific categorization\",\r\n                \"category3\": \"Highly specific categorization\",\r\n                \"quantity\": 2,\r\n                \"price\": 1,\r\n                \"name\": \"Item 2\",\r\n                \"sku\": \"SKU678951234\",\r\n                \"currencyCode\": \"HKD\"\r\n            }\r\n        ]\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_base_url}}/payments/paymentrequests",
+					"host": [
+						"{{api_base_url}}"
+					],
+					"path": [
+						"payments",
+						"paymentrequests"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "create payment request",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Api-Version",
+								"value": "{{version}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "en-US"
+							},
+							{
+								"key": "Trace-Id",
+								"value": "{{trace_id}}"
+							},
+							{
+								"key": "Request-Date-Time",
+								"value": "{{utc_now}}"
+							},
+							{
+								"key": "Signature",
+								"value": "{{signature}}"
+							},
+							{
+								"key": "Digest",
+								"value": "{{digest}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6InU0T2ZORlBId0VCb3NIanRyYXVPYlY4NExuWSIsImtpZCI6InU0T2ZORlBId0VCb3NIanRyYXVPYlY4NExuWSJ9.eyJhdWQiOiJhYTc2NzIxMi0yZDY2LTRiYzQtYjIyZi1mZGMyZjFkYjExYTkiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9mNTk3MzQ2ZC1kOGMzLTRjZmUtOWUxMi1jMzI2NjkzZTQ4NDkvIiwiaWF0IjoxNTYzMTc2MzMxLCJuYmYiOjE1NjMxNzYzMzEsImV4cCI6MTU2MzE4MDIzMSwiYWlvIjoiNDJGZ1lEZ2R5RjUybjMzUGlSMG05MWZXU2w0N0RRQT0iLCJhcHBpZCI6IjljY2E2MGQzLWQzZTItNDdlYy1iNzc4LWQwN2EzNTg2NGFkYSIsImFwcGlkYWNyIjoiMSIsImlkcCI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0L2Y1OTczNDZkLWQ4YzMtNGNmZS05ZTEyLWMzMjY2OTNlNDg0OS8iLCJvaWQiOiJlZTYxZmIwNS0xYTUzLTQ2MTUtOGM2Yy00ZDhlYzNmNWQ4OWMiLCJyb2xlcyI6WyJtZXJjaGFudCIsIkFwcGxpY2F0aW9uS2V5LlJlYWRXcml0ZS5BbGwiLCJUcmFuc2FjdGlvbi5SZWFkIiwicmVmdW5kIiwiQXBwbGljYXRpb24uUmVhZFdyaXRlLkFsbCIsInBheW1lbnRSZXF1ZXN0Il0sInN1YiI6ImVlNjFmYjA1LTFhNTMtNDYxNS04YzZjLTRkOGVjM2Y1ZDg5YyIsInRpZCI6ImY1OTczNDZkLWQ4YzMtNGNmZS05ZTEyLWMzMjY2OTNlNDg0OSIsInV0aSI6IjVFU2RqWmYtT1UyS3lFb1hJZlpYQUEiLCJ2ZXIiOiIxLjAifQ.SCvyRYgesaPzjHiGCDa1ukjGbwpmur0r3isOW2U5Nl9jfuxKd_6CWEoYYp-DwpxmJRGdJd6xSghzVckr_F0zyynFdaS6i89UmO4tvcm01ymOcwCAh4MVH29evCzSjnKAf08l5sarhJmYQalqmBGhdKWA20W6qjddrjqpNH_I4_sfdCdoraW14I1cckLYc2Lkr2KNSB41j2fbwpcxNH9497eciPjGIS0_Yq7VBDzmg3XmArAT2jEfC7VhtQSqb3Uwf25TyTPWvNPoA85zt13VrdVclyYsFCgSzjUgXbJyt-IqBl51QWrHB10gLmULaWd2nopfdLR0Z9i-BHqpvDnXaw",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"totalAmount\": 3,\n    \"currencyCode\": \"HKD\",\n    \"merchantData\": {\n        \"orderId\": \"ID12345678\",\n        \"orderDescription\": \"Description displayed to customer\",\n        \"additionalData\": \"Arbitrary additional data - logged but not displayed\",\n        \"shoppingCart\": [\n            {\n                \"category1\": \"General categorization\",\n                \"category2\": \"More specific categorization\",\n                \"category3\": \"Highly specific categorization\",\n                \"quantity\": 1,\n                \"price\": 1,\n                \"name\": \"Item 1\",\n                \"sku\": \"SKU987654321\",\n                \"currencyCode\": \"HKD\"\n            },\n            {\n                \"category1\": \"General categorization\",\n                \"category2\": \"More specific categorization\",\n                \"category3\": \"Highly specific categorization\",\n                \"quantity\": 2,\n                \"price\": 1,\n                \"name\": \"Item 2\",\n                \"sku\": \"SKU678951234\",\n                \"currencyCode\": \"HKD\"\n            }\n        ]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{api_base_url}}/paymentrequests",
+							"host": [
+								"{{api_base_url}}"
+							],
+							"path": [
+								"paymentrequests"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json;charset=UTF-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "176"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 09 Aug 2019 09:54:37 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Service Request Validation Failed\",\n    \"errors\": [\n        {\n            \"errorCode\": \"EA002\",\n            \"errorDescription\": \"Missing request header 'Authorization' for method parameter of type String\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Get Payment Request Status",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function computeHttpSignature(config, headerHash) {",
+							"  var template = 'keyId=\"${keyId}\",algorithm=\"${algorithm}\",headers=\"${headers}\",signature=\"${signature}\"',",
+							"      sig = template;",
+							"",
+							"  // compute sig here",
+							"  var signingBase = '';",
+							"  config.headers.forEach(function(h){",
+							"    if (signingBase !== '') {",
+							"        signingBase += '\\n';",
+							"        ",
+							"    }",
+							"    signingBase += h.toLowerCase() + \": \" + headerHash[h];",
+							"  });",
+							"",
+							"  var hashf = (function() {",
+							"      switch (config.algorithm) {",
+							"        case 'hmac-sha1': return CryptoJS.HmacSHA1;",
+							"        case 'hmac-sha256': return CryptoJS.HmacSHA256;",
+							"        case 'hmac-sha512': return CryptoJS.HmacSHA512;",
+							"        default : return null;",
+							"      }",
+							"    }());",
+							"",
+							"  var hash = hashf(signingBase, config.secretkey);",
+							"  var signatureOptions = {",
+							"        keyId : config.keyId,",
+							"        algorithm: config.algorithm,",
+							"        headers: config.headers,",
+							"        signature : CryptoJS.enc.Base64.stringify(hash)",
+							"      };",
+							"",
+							"  // build sig string here",
+							"  Object.keys(signatureOptions).forEach(function(key) {",
+							"    var pattern = \"${\" + key + \"}\",",
+							"        value = (typeof signatureOptions[key] != 'string') ? signatureOptions[key].join(' ') : signatureOptions[key];",
+							"    sig = sig.replace(pattern, value);",
+							"  });",
+							"",
+							"  return sig;",
+							"}",
+							"",
+							"var targetUrl = '/payments/paymentrequests/' + environment['paymentRequestId'];",
+							"var method = request.method.toLowerCase();",
+							"var sha256digest = CryptoJS.SHA256(request.data);",
+							"var base64sha256 = CryptoJS.enc.Base64.stringify(sha256digest);",
+							"var computedDigest = 'sha-256=' + base64sha256;",
+							"var content_length =  JSON.stringify(request.data).length;",
+							"",
+							"var headerHash = {",
+							"      'Request-Date-Time' : environment['utc_now'],",
+							"      'Api-Version': environment['version'],",
+							"      'Trace-Id': environment['trace_id'],",
+							"      'Authorization': 'Bearer ' + environment['access_token'],",
+							"      digest : computedDigest,",
+							"      '(request-target)' : method + ' ' + targetUrl",
+							"    };",
+							"",
+							"var config = {",
+							"      algorithm : 'hmac-sha256',",
+							"      keyId : environment['signing_key_id'],",
+							"      secretkey : CryptoJS.enc.Base64.parse(environment['signing_key']),",
+							"      headers : ['(request-target)', 'Api-Version', 'Request-Date-Time', 'Trace-Id', 'Authorization']",
+							"    };",
+							"",
+							"pm.environment.set('signature', computeHttpSignature(config, headerHash));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-US"
+					},
+					{
+						"key": "Trace-Id",
+						"value": "{{trace_id}}"
+					},
+					{
+						"key": "Request-Date-Time",
+						"value": "{{utc_now}}"
+					},
+					{
+						"key": "Api-Version",
+						"value": "{{version}}"
+					},
+					{
+						"key": "Signature",
+						"value": "{{signature}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_base_url}}/payments/paymentrequests/{{paymentRequestId}}",
+					"host": [
+						"{{api_base_url}}"
+					],
+					"path": [
+						"payments",
+						"paymentrequests",
+						"{{paymentRequestId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cancel Payment Request",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function computeHttpSignature(config, headerHash) {",
+							"  var template = 'keyId=\"${keyId}\",algorithm=\"${algorithm}\",headers=\"${headers}\",signature=\"${signature}\"',",
+							"      sig = template;",
+							"",
+							"  // compute sig here",
+							"  var signingBase = '';",
+							"  config.headers.forEach(function(h){",
+							"    if (signingBase !== '') {",
+							"        signingBase += '\\n';",
+							"        ",
+							"    }",
+							"    signingBase += h.toLowerCase() + \": \" + headerHash[h];",
+							"  });",
+							"",
+							"  var hashf = (function() {",
+							"      switch (config.algorithm) {",
+							"        case 'hmac-sha1': return CryptoJS.HmacSHA1;",
+							"        case 'hmac-sha256': return CryptoJS.HmacSHA256;",
+							"        case 'hmac-sha512': return CryptoJS.HmacSHA512;",
+							"        default : return null;",
+							"      }",
+							"    }());",
+							"",
+							"  var hash = hashf(signingBase, config.secretkey);",
+							"  var signatureOptions = {",
+							"        keyId : config.keyId,",
+							"        algorithm: config.algorithm,",
+							"        headers: config.headers,",
+							"        signature : CryptoJS.enc.Base64.stringify(hash)",
+							"      };",
+							"",
+							"  // build sig string here",
+							"  Object.keys(signatureOptions).forEach(function(key) {",
+							"    var pattern = \"${\" + key + \"}\",",
+							"        value = (typeof signatureOptions[key] != 'string') ? signatureOptions[key].join(' ') : signatureOptions[key];",
+							"    sig = sig.replace(pattern, value);",
+							"  });",
+							"",
+							"  return sig;",
+							"}",
+							"",
+							"var targetUrl = '/payments/paymentrequests/'+environment['paymentRequestId']+'/cancel';",
+							"var method = request.method.toLowerCase();",
+							"var sha256digest = CryptoJS.SHA256(request.data);",
+							"var base64sha256 = CryptoJS.enc.Base64.stringify(sha256digest);",
+							"var computedDigest = 'sha-256=' + base64sha256;",
+							"var content_length =  JSON.stringify(request.data).length;",
+							"",
+							"var headerHash = {",
+							"      'Request-Date-Time' : environment['utc_now'],",
+							"      'Api-Version': environment['version'],",
+							"      'Trace-Id': environment['trace_id'],",
+							"      'Authorization': 'Bearer ' + environment['access_token'],",
+							"      digest : computedDigest,",
+							"      '(request-target)' : method + ' ' + targetUrl",
+							"    };",
+							"",
+							"var config = {",
+							"      algorithm : 'hmac-sha256',",
+							"      keyId : environment['signing_key_id'],",
+							"      secretkey : CryptoJS.enc.Base64.parse(environment['signing_key']),",
+							"      headers : ['(request-target)', 'Api-Version', 'Request-Date-Time', 'Trace-Id', 'Authorization']",
+							"    };",
+							"",
+							"pm.environment.set('signature', computeHttpSignature(config, headerHash));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-US"
+					},
+					{
+						"key": "Trace-Id",
+						"value": "{{trace_id}}"
+					},
+					{
+						"key": "Request-Date-Time",
+						"value": "{{utc_now}}"
+					},
+					{
+						"key": "Api-Version",
+						"value": "{{version}}"
+					},
+					{
+						"key": "Signature",
+						"value": "{{signature}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{api_base_url}}/payments/paymentrequests/{{paymentRequestId}}/cancel",
+					"host": [
+						"{{api_base_url}}"
+					],
+					"path": [
+						"payments",
+						"paymentrequests",
+						"{{paymentRequestId}}",
+						"cancel"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Transactions",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function computeHttpSignature(config, headerHash) {",
+							"  var template = 'keyId=\"${keyId}\",algorithm=\"${algorithm}\",headers=\"${headers}\",signature=\"${signature}\"',",
+							"      sig = template;",
+							"",
+							"  // compute sig here",
+							"  var signingBase = '';",
+							"  config.headers.forEach(function(h){",
+							"    if (signingBase !== '') {",
+							"        signingBase += '\\n';",
+							"        ",
+							"    }",
+							"    signingBase += h.toLowerCase() + \": \" + headerHash[h];",
+							"  });",
+							"",
+							"  var hashf = (function() {",
+							"      switch (config.algorithm) {",
+							"        case 'hmac-sha1': return CryptoJS.HmacSHA1;",
+							"        case 'hmac-sha256': return CryptoJS.HmacSHA256;",
+							"        case 'hmac-sha512': return CryptoJS.HmacSHA512;",
+							"        default : return null;",
+							"      }",
+							"    }());",
+							"",
+							"  var hash = hashf(signingBase, config.secretkey);",
+							"  var signatureOptions = {",
+							"        keyId : config.keyId,",
+							"        algorithm: config.algorithm,",
+							"        headers: config.headers,",
+							"        signature : CryptoJS.enc.Base64.stringify(hash)",
+							"      };",
+							"",
+							"  // build sig string here",
+							"  Object.keys(signatureOptions).forEach(function(key) {",
+							"    var pattern = \"${\" + key + \"}\",",
+							"        value = (typeof signatureOptions[key] != 'string') ? signatureOptions[key].join(' ') : signatureOptions[key];",
+							"    sig = sig.replace(pattern, value);",
+							"  });",
+							"",
+							"  return sig;",
+							"}",
+							"",
+							"var targetUrl = '/payments/transactions';",
+							"var method = request.method.toLowerCase();",
+							"var sha256digest = CryptoJS.SHA256(request.data);",
+							"var base64sha256 = CryptoJS.enc.Base64.stringify(sha256digest);",
+							"var computedDigest = 'sha-256=' + base64sha256;",
+							"var content_length =  JSON.stringify(request.data).length;",
+							"",
+							"var headerHash = {",
+							"      'Request-Date-Time' : environment['utc_now'],",
+							"      'Api-Version': environment['version'],",
+							"      'Trace-Id': environment['trace_id'],",
+							"      'Authorization': 'Bearer ' + environment['access_token'],",
+							"      digest : computedDigest,",
+							"      '(request-target)' : method + ' ' + targetUrl",
+							"    };",
+							"",
+							"var config = {",
+							"      algorithm : 'hmac-sha256',",
+							"      keyId : environment['signing_key_id'],",
+							"      secretkey : CryptoJS.enc.Base64.parse(environment['signing_key']),",
+							"      headers : ['(request-target)', 'Api-Version', 'Request-Date-Time', 'Trace-Id', 'Authorization']",
+							"    };",
+							"",
+							"pm.environment.set('signature', computeHttpSignature(config, headerHash));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-US"
+					},
+					{
+						"key": "Trace-Id",
+						"value": "{{trace_id}}"
+					},
+					{
+						"key": "Request-Date-Time",
+						"value": "{{utc_now}}"
+					},
+					{
+						"key": "Api-Version",
+						"value": "{{version}}"
+					},
+					{
+						"key": "Signature",
+						"value": "{{signature}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_base_url}}/payments/transactions",
+					"host": [
+						"{{api_base_url}}"
+					],
+					"path": [
+						"payments",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Transactions By Id",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function computeHttpSignature(config, headerHash) {",
+							"  var template = 'keyId=\"${keyId}\",algorithm=\"${algorithm}\",headers=\"${headers}\",signature=\"${signature}\"',",
+							"      sig = template;",
+							"",
+							"  // compute sig here",
+							"  var signingBase = '';",
+							"  config.headers.forEach(function(h){",
+							"    if (signingBase !== '') {",
+							"        signingBase += '\\n';",
+							"        ",
+							"    }",
+							"    signingBase += h.toLowerCase() + \": \" + headerHash[h];",
+							"  });",
+							"",
+							"  var hashf = (function() {",
+							"      switch (config.algorithm) {",
+							"        case 'hmac-sha1': return CryptoJS.HmacSHA1;",
+							"        case 'hmac-sha256': return CryptoJS.HmacSHA256;",
+							"        case 'hmac-sha512': return CryptoJS.HmacSHA512;",
+							"        default : return null;",
+							"      }",
+							"    }());",
+							"",
+							"  var hash = hashf(signingBase, config.secretkey);",
+							"  var signatureOptions = {",
+							"        keyId : config.keyId,",
+							"        algorithm: config.algorithm,",
+							"        headers: config.headers,",
+							"        signature : CryptoJS.enc.Base64.stringify(hash)",
+							"      };",
+							"",
+							"  // build sig string here",
+							"  Object.keys(signatureOptions).forEach(function(key) {",
+							"    var pattern = \"${\" + key + \"}\",",
+							"        value = (typeof signatureOptions[key] != 'string') ? signatureOptions[key].join(' ') : signatureOptions[key];",
+							"    sig = sig.replace(pattern, value);",
+							"  });",
+							"",
+							"  return sig;",
+							"}",
+							"",
+							"var targetUrl = '/payments/transactions/' + environment['transactionId'];",
+							"var method = request.method.toLowerCase();",
+							"var sha256digest = CryptoJS.SHA256(request.data);",
+							"var base64sha256 = CryptoJS.enc.Base64.stringify(sha256digest);",
+							"var computedDigest = 'sha-256=' + base64sha256;",
+							"var content_length =  JSON.stringify(request.data).length;",
+							"",
+							"var headerHash = {",
+							"      'Request-Date-Time' : environment['utc_now'],",
+							"      'Api-Version': environment['version'],",
+							"      'Trace-Id': environment['trace_id'],",
+							"      'Authorization': 'Bearer ' + environment['access_token'],",
+							"      digest : computedDigest,",
+							"      '(request-target)' : method + ' ' + targetUrl",
+							"    };",
+							"",
+							"var config = {",
+							"      algorithm : 'hmac-sha256',",
+							"      keyId : environment['signing_key_id'],",
+							"      secretkey : CryptoJS.enc.Base64.parse(environment['signing_key']),",
+							"      headers : ['(request-target)', 'Api-Version', 'Request-Date-Time', 'Trace-Id', 'Authorization']",
+							"    };",
+							"",
+							"pm.environment.set('signature', computeHttpSignature(config, headerHash));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-US"
+					},
+					{
+						"key": "Trace-Id",
+						"value": "{{trace_id}}"
+					},
+					{
+						"key": "Request-Date-Time",
+						"value": "{{utc_now}}"
+					},
+					{
+						"key": "Api-Version",
+						"value": "{{version}}"
+					},
+					{
+						"key": "Signature",
+						"value": "{{signature}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_base_url}}/payments/transactions/{{transactionId}}",
+					"host": [
+						"{{api_base_url}}"
+					],
+					"path": [
+						"payments",
+						"transactions",
+						"{{transactionId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refund",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"paymentRequestId\", jsonData.paymentRequestId);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"    function computeHttpSignature(config, headerHash) {",
+							"      var template = 'keyId=\"${keyId}\",algorithm=\"${algorithm}\",headers=\"${headers}\",signature=\"${signature}\"',",
+							"          sig = template;",
+							"    ",
+							"      // compute sig here",
+							"      var signingBase = '';",
+							"      config.headers.forEach(function(h){",
+							"        if (signingBase !== '') {",
+							"            signingBase += '\\n';",
+							"            ",
+							"        }",
+							"        signingBase += h.toLowerCase() + \": \" + headerHash[h];",
+							"      });",
+							"    ",
+							"      var hashf = (function() {",
+							"          switch (config.algorithm) {",
+							"            case 'hmac-sha1': return CryptoJS.HmacSHA1;",
+							"            case 'hmac-sha256': return CryptoJS.HmacSHA256;",
+							"            case 'hmac-sha512': return CryptoJS.HmacSHA512;",
+							"            default : return null;",
+							"          }",
+							"        }());",
+							"    ",
+							"      var hash = hashf(signingBase, config.secretkey);",
+							"      var signatureOptions = {",
+							"            keyId : config.keyId,",
+							"            algorithm: config.algorithm,",
+							"            headers: config.headers,",
+							"            signature : CryptoJS.enc.Base64.stringify(hash)",
+							"          };",
+							"    ",
+							"      // build sig string here",
+							"      Object.keys(signatureOptions).forEach(function(key) {",
+							"        var pattern = \"${\" + key + \"}\",",
+							"            value = (typeof signatureOptions[key] != 'string') ? signatureOptions[key].join(' ') : signatureOptions[key];",
+							"        sig = sig.replace(pattern, value);",
+							"      });",
+							"    ",
+							"      return sig;",
+							"    }",
+							"    ",
+							"    var targetUrl = '/payments/transactions/'+environment['transactionId']+'/refunds'",
+							"    var method = request.method.toLowerCase();",
+							"    var sha256digest = CryptoJS.SHA256(request.data);",
+							"    var base64sha256 = CryptoJS.enc.Base64.stringify(sha256digest);",
+							"    var computedDigest = 'SHA-256=' + base64sha256;",
+							"    var content_length =  JSON.stringify(request.data).length;",
+							"    ",
+							"    var headerHash = {",
+							"          'Request-Date-Time' : environment['utc_now'],",
+							"          'Api-Version': environment['version'],",
+							"          'Trace-Id': environment['trace_id'],",
+							"          'Authorization': 'Bearer ' + environment['access_token'],",
+							"          'Digest' : computedDigest,",
+							"          '(request-target)' : method + ' ' + targetUrl",
+							"        };",
+							"    ",
+							"    var config = {",
+							"          algorithm : 'hmac-sha256',",
+							"          keyId : environment['signing_key_id'],",
+							"          secretkey : CryptoJS.enc.Base64.parse(environment['signing_key']),",
+							"          headers : ['(request-target)', 'Api-Version', 'Request-Date-Time', 'Trace-Id', 'Authorization', 'Digest']",
+							"        };",
+							"    ",
+							"    pm.environment.set('signature', computeHttpSignature(config, headerHash));",
+							"    pm.environment.set('digest', computedDigest);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Api-Version",
+						"value": "{{version}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-US"
+					},
+					{
+						"key": "Trace-Id",
+						"value": "{{trace_id}}"
+					},
+					{
+						"key": "Request-Date-Time",
+						"value": "{{utc_now}}"
+					},
+					{
+						"key": "Signature",
+						"value": "{{signature}}"
+					},
+					{
+						"key": "Digest",
+						"value": "{{digest}}",
+						"type": "text"
+					},
+					{
+						"key": "X-HSBC-DeviceId",
+						"value": "{{deviceId}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"amount\": 1.00,\r\n  \"currencyCode\": \"HKD\",\r\n  \"reasonCode\": \"01\",\r\n  \"reasonMessage\": \"Damaged stock returned to store\"\r\n}"
+				},
+				"url": {
+					"raw": "{{api_base_url}}/payments/transactions/{{transactionId}}/refunds",
+					"host": [
+						"{{api_base_url}}"
+					],
+					"path": [
+						"payments",
+						"transactions",
+						"{{transactionId}}",
+						"refunds"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"const moment = require('moment');",
+					"const uuid = require('uuid')",
+					"pm.environment.set(\"utc_now\", moment());",
+					"pm.environment.set(\"trace_id\", uuid());"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "api_base_url",
+			"value": "https://sandbox.api.payme.hsbc.com.hk"
+		},
+		{
+			"key": "version",
+			"value": "0.12"
+		},
+		{
+			"key": "client_id",
+			"value": "d61688db-d70c-42c4-8d69-d21819195872"
+		},
+		{
+			"key": "client_secret",
+			"value": "l8b8Q~p6O5n_UVJ.5gx4tfkgp3KrnuRGQeg-_blo"
+		}
+	]
+}
