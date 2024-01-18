@@ -121,7 +121,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"name\": \"Nike Shoes\",\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"paymentOperation\": \"Pay\",\r\n  \"returnUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"cardOnFile\": true,\r\n  \"paymentOptions\": [\r\n    {\r\n      \"paymentMethods\": \"visa\",\r\n      \"label\": \"visa\"\r\n    }\r\n  ]\r\n}",
+					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"tokenId\": \"48c9969a-ac6f-44ed-7eef-08dc12e9095b\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
