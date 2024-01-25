@@ -50,7 +50,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"name\": \"Nike Shoes\",\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"paymentOperation\": \"Pay\",\r\n  \"returnUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"cardOnFile\": true,\r\n  \"paymentOptions\": [\r\n    {\r\n      \"paymentMethods\": \"visa\",\r\n      \"label\": \"visa\"\r\n    }\r\n  ]\r\n}",
+					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"name\": \"Nike Shoes\",\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"returnUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"cardOnFile\": true,\r\n  \"cofAgreement\": {\r\n    \"id\": \"{{randomCofAgreementId}}\",\r\n    \"type\": \"Unscheduled\"\r\n  }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -78,7 +78,7 @@
 			"response": []
 		},
 		{
-			"name": "Create Session (With Token)",
+			"name": "Create Session (Tokenized Payment)",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -121,7 +121,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"tokenId\": \"48c9969a-ac6f-44ed-7eef-08dc12e9095b\"\r\n}",
+					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"name\": \"Gucci Bag\",\r\n        \"merchantItemId\": \"product-QWER\",\r\n        \"categories\": \"other\",\r\n        \"count\": 1,\r\n        \"price\": 67.89\r\n      }\r\n    ],\r\n    \"description\": \"Test Tokenization\"\r\n  },\r\n  \"returnUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"tokenId\": \"35c7aa87-bc0b-476e-219f-08dc0623b46a\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -143,6 +143,81 @@
 						"v1",
 						"direct",
 						"session"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Recurring Payment (Token)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function generateRandomString(length) {\r",
+							"    var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';\r",
+							"    var result = '';\r",
+							"    for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];\r",
+							"    return result;\r",
+							"}\r",
+							"\r",
+							"let randomReferenceId = 'POC-UAE-' + generateRandomString(6);\r",
+							"pm.environment.set(\"randomReferenceId\", randomReferenceId);\r",
+							"\r",
+							"let randomAmount = (Math.random() * 100).toFixed(2);\r",
+							"pm.environment.set(\"randomAmount\", randomAmount);\r",
+							"\r",
+							"let randomCofAgreementId = 'TEST-COF-' + generateRandomString(6);\r",
+							"pm.environment.set(\"randomCofAgreementId\", randomCofAgreementId);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "75b027c6-52da-4153-90c1-b0f69567c198",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "02671077-f3e3-47d5-8174-56a06b2897b5",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"amount\": {{randomAmount}},\r\n\t\"payWithToken\": true,\r\n\t\"currency\": \"AED\",\r\n\t\"tokenId\": \"76319aa3-3ff0-4b8b-21b9-08dc0623b46a\",\r\n\t\"isCreateCustomerEnabled\": false,\r\n\t\"isSetPaymentMethodEnabled\": false,\r\n\t\"paymentOperation\": \"pay\",\r\n\t\"initiatedBy\": \"Merchant\",\r\n\t\"agreementId\": \"TEST-COF-KykpGv\",\r\n\t\"agreementType\": \"Unscheduled\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.merchant.geidea.net/pgw/api/v1/direct/pay/token",
+					"protocol": "https",
+					"host": [
+						"api",
+						"merchant",
+						"geidea",
+						"net"
+					],
+					"path": [
+						"pgw",
+						"api",
+						"v1",
+						"direct",
+						"pay",
+						"token"
 					]
 				}
 			},
@@ -265,7 +340,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"orderId\": \"0255851e-abe2-4fc0-e702-08dc0b66e0c0\",\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"refundAmount\": 10.00\r\n}",
+					"raw": "{\r\n  \"orderId\": \"0255851e-abe2-4fc0-e702-08dc0b66e0c0\",\r\n  \"refundAmount\": 10.00\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
