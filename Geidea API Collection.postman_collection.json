@@ -20,11 +20,45 @@
 							"    return result;\r",
 							"}\r",
 							"\r",
-							"let randomReferenceId = 'POC-UAE-' + generateRandomString(6);\r",
-							"pm.environment.set(\"randomReferenceId\", randomReferenceId);\r",
+							"function generateSignature(rawString, apiPassword) {\r",
+							"    var signatureHmacSha256 = CryptoJS.HmacSHA256(rawString, apiPassword);\r",
+							"    return CryptoJS.enc.Base64.stringify(signatureHmacSha256);\r",
+							"}\r",
 							"\r",
+							"// Retrieve your stored variables\r",
+							"const merchantPublicKey = 'd9fd2b48-16f6-4213-9d39-293139dc2795';\r",
+							"const apiPassword = 'faab1120-bc38-4456-becf-c5d9a5e3c423';\r",
+							"let currency = 'AED';\r",
+							"\r",
+							"// Generate dynamic data\r",
+							"let randomReferenceId = 'POC-UAE-' + generateRandomString(6);\r",
 							"let randomAmount = (Math.random() * 100).toFixed(2);\r",
-							"pm.environment.set(\"randomAmount\", randomAmount);"
+							"let randomCofAgreementId = 'COF' + generateRandomString(6);\r",
+							"\r",
+							"// Get the current date and time\r",
+							"const now = new Date();\r",
+							"let timestamp = now.toLocaleString('en-US', {\r",
+							"    year: 'numeric',\r",
+							"    month: '2-digit',\r",
+							"    day: '2-digit',\r",
+							"    hour: '2-digit',\r",
+							"    minute: '2-digit',\r",
+							"    second: '2-digit',\r",
+							"    hour12: true\r",
+							"}).replace(',', '');\r",
+							"\r",
+							"// Prepare the string to be signed\r",
+							"let rawString = merchantPublicKey + randomAmount + currency + randomReferenceId + timestamp;\r",
+							"\r",
+							"// Generate the signature\r",
+							"let signature = generateSignature(rawString, apiPassword);\r",
+							"\r",
+							"// Update the environment variables\r",
+							"pm.environment.set(\"randomReferenceId\", randomReferenceId);\r",
+							"pm.environment.set(\"randomAmount\", randomAmount);\r",
+							"pm.environment.set(\"randomCofAgreementId\", randomCofAgreementId);\r",
+							"pm.environment.set(\"timestamp\", timestamp);\r",
+							"pm.environment.set(\"signature\", signature);"
 						],
 						"type": "text/javascript"
 					}
@@ -36,12 +70,12 @@
 					"basic": [
 						{
 							"key": "password",
-							"value": "75b027c6-52da-4153-90c1-b0f69567c198",
+							"value": "faab1120-bc38-4456-becf-c5d9a5e3c423",
 							"type": "string"
 						},
 						{
 							"key": "username",
-							"value": "02671077-f3e3-47d5-8174-56a06b2897b5",
+							"value": "d9fd2b48-16f6-4213-9d39-293139dc2795",
 							"type": "string"
 						}
 					]
@@ -50,7 +84,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"name\": \"Nike Shoes\",\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"returnUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"cardOnFile\": true,\r\n  \"cofAgreement\": {\r\n    \"id\": \"{{randomCofAgreementId}}\",\r\n    \"type\": \"Unscheduled\"\r\n  }\r\n}",
+					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"timestamp\": \"{{timestamp}}\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"callbackUrl\": \"https://webhook.site/a9f63bb4-988a-49d9-b532-d3a01bcb1b71\",\r\n  \"cardOnFile\": true,\r\n  \"paymentOperation\": \"Pay\",\r\n  \"cofAgreement\": {\r\n    \"id\": \"{{randomCofAgreementId}}\",\r\n    \"type\": \"UNSCHEDULED\"\r\n  },\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"name\": \"Nike Shoes\",\r\n        \"description\": null,\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"signature\": \"{{signature}}\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -58,18 +92,17 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.merchant.geidea.net/payment-intent/api/v1/direct/session",
+					"raw": "https://api-test.gd-azure-dev.net/payment-intent/api/v2/direct/session",
 					"protocol": "https",
 					"host": [
-						"api",
-						"merchant",
-						"geidea",
+						"api-test",
+						"gd-azure-dev",
 						"net"
 					],
 					"path": [
 						"payment-intent",
 						"api",
-						"v1",
+						"v2",
 						"direct",
 						"session"
 					]
@@ -91,11 +124,43 @@
 							"    return result;\r",
 							"}\r",
 							"\r",
-							"let randomReferenceId = 'POC-UAE-' + generateRandomString(6);\r",
-							"pm.environment.set(\"randomReferenceId\", randomReferenceId);\r",
+							"function generateSignature(rawString, apiPassword) {\r",
+							"    var signatureHmacSha256 = CryptoJS.HmacSHA256(rawString, apiPassword);\r",
+							"    return CryptoJS.enc.Base64.stringify(signatureHmacSha256);\r",
+							"}\r",
 							"\r",
+							"// Retrieve your stored variables\r",
+							"const merchantPublicKey = 'd9fd2b48-16f6-4213-9d39-293139dc2795';\r",
+							"const apiPassword = 'faab1120-bc38-4456-becf-c5d9a5e3c423';\r",
+							"let currency = 'AED';\r",
+							"\r",
+							"// Generate dynamic data\r",
+							"let randomReferenceId = 'POC-UAE-' + generateRandomString(6);\r",
 							"let randomAmount = (Math.random() * 100).toFixed(2);\r",
-							"pm.environment.set(\"randomAmount\", randomAmount);"
+							"\r",
+							"// Get the current date and time\r",
+							"const now = new Date();\r",
+							"let timestamp = now.toLocaleString('en-US', {\r",
+							"    year: 'numeric',\r",
+							"    month: '2-digit',\r",
+							"    day: '2-digit',\r",
+							"    hour: '2-digit',\r",
+							"    minute: '2-digit',\r",
+							"    second: '2-digit',\r",
+							"    hour12: true\r",
+							"}).replace(',', '');\r",
+							"\r",
+							"// Prepare the string to be signed\r",
+							"let rawString = merchantPublicKey + randomAmount + currency + randomReferenceId + timestamp;\r",
+							"\r",
+							"// Generate the signature\r",
+							"let signature = generateSignature(rawString, apiPassword);\r",
+							"\r",
+							"// Update the environment variables\r",
+							"pm.environment.set(\"randomReferenceId\", randomReferenceId);\r",
+							"pm.environment.set(\"randomAmount\", randomAmount);\r",
+							"pm.environment.set(\"timestamp\", timestamp);\r",
+							"pm.environment.set(\"signature\", signature);"
 						],
 						"type": "text/javascript"
 					}
@@ -107,12 +172,12 @@
 					"basic": [
 						{
 							"key": "password",
-							"value": "75b027c6-52da-4153-90c1-b0f69567c198",
+							"value": "faab1120-bc38-4456-becf-c5d9a5e3c423",
 							"type": "string"
 						},
 						{
 							"key": "username",
-							"value": "02671077-f3e3-47d5-8174-56a06b2897b5",
+							"value": "d9fd2b48-16f6-4213-9d39-293139dc2795",
 							"type": "string"
 						}
 					]
@@ -121,7 +186,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"name\": \"Gucci Bag\",\r\n        \"merchantItemId\": \"product-QWER\",\r\n        \"categories\": \"other\",\r\n        \"count\": 1,\r\n        \"price\": 67.89\r\n      }\r\n    ],\r\n    \"description\": \"Test Tokenization\"\r\n  },\r\n  \"returnUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\",\r\n  \"tokenId\": \"35c7aa87-bc0b-476e-219f-08dc0623b46a\"\r\n}",
+					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"timestamp\": \"{{timestamp}}\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"callbackUrl\": \"https://webhook.site/a9f63bb4-988a-49d9-b532-d3a01bcb1b71\",\r\n  \"paymentOperation\": \"Pay\",\r\n  \"tokenId\": \"2a6a6dcb-458b-46a2-094f-08dc3d100b9e\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"name\": \"Nike Shoes\",\r\n        \"description\": null,\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"signature\": \"{{signature}}\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -129,18 +194,17 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.merchant.geidea.net/payment-intent/api/v1/direct/session",
+					"raw": "https://api-test.gd-azure-dev.net/payment-intent/api/v2/direct/session",
 					"protocol": "https",
 					"host": [
-						"api",
-						"merchant",
-						"geidea",
+						"api-test",
+						"gd-azure-dev",
 						"net"
 					],
 					"path": [
 						"payment-intent",
 						"api",
-						"v1",
+						"v2",
 						"direct",
 						"session"
 					]
@@ -181,12 +245,12 @@
 					"basic": [
 						{
 							"key": "password",
-							"value": "75b027c6-52da-4153-90c1-b0f69567c198",
+							"value": "faab1120-bc38-4456-becf-c5d9a5e3c423",
 							"type": "string"
 						},
 						{
 							"key": "username",
-							"value": "02671077-f3e3-47d5-8174-56a06b2897b5",
+							"value": "d9fd2b48-16f6-4213-9d39-293139dc2795",
 							"type": "string"
 						}
 					]
@@ -195,7 +259,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\t\"amount\": {{randomAmount}},\r\n\t\"payWithToken\": true,\r\n\t\"currency\": \"AED\",\r\n\t\"tokenId\": \"76319aa3-3ff0-4b8b-21b9-08dc0623b46a\",\r\n\t\"isCreateCustomerEnabled\": false,\r\n\t\"isSetPaymentMethodEnabled\": false,\r\n\t\"paymentOperation\": \"pay\",\r\n\t\"initiatedBy\": \"Merchant\",\r\n\t\"agreementId\": \"TEST-COF-KykpGv\",\r\n\t\"agreementType\": \"Unscheduled\"\r\n}",
+					"raw": "{\r\n\t\"amount\": {{randomAmount}},\r\n\t\"payWithToken\": true,\r\n\t\"currency\": \"AED\",\r\n\t\"tokenId\": \"20763c3f-2012-4c85-0951-08dc3d100b9e\",\r\n\t\"isCreateCustomerEnabled\": false,\r\n\t\"isSetPaymentMethodEnabled\": false,\r\n\t\"paymentOperation\": \"pay\",\r\n\t\"initiatedBy\": \"Merchant\",\r\n\t\"agreementId\": \"cof1223423\",\r\n\t\"agreementType\": \"Unscheduled\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -203,12 +267,11 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.merchant.geidea.net/pgw/api/v1/direct/pay/token",
+					"raw": "https://api-test.gd-azure-dev.net/pgw/api/v1/direct/pay/token",
 					"protocol": "https",
 					"host": [
-						"api",
-						"merchant",
-						"geidea",
+						"api-test",
+						"gd-azure-dev",
 						"net"
 					],
 					"path": [
@@ -231,12 +294,12 @@
 					"basic": [
 						{
 							"key": "password",
-							"value": "75b027c6-52da-4153-90c1-b0f69567c198",
+							"value": "faab1120-bc38-4456-becf-c5d9a5e3c423",
 							"type": "string"
 						},
 						{
 							"key": "username",
-							"value": "02671077-f3e3-47d5-8174-56a06b2897b5",
+							"value": "d9fd2b48-16f6-4213-9d39-293139dc2795",
 							"type": "string"
 						}
 					]
@@ -244,12 +307,11 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://api.merchant.geidea.net/pgw/api/v1/direct/order?MerchantReferenceId=POC-UAE-osJe5I",
+					"raw": "https://api-test.gd-azure-dev.net/pgw/api/v1/direct/order?MerchantReferenceId=POC-UAE-7unpWl",
 					"protocol": "https",
 					"host": [
-						"api",
-						"merchant",
-						"geidea",
+						"api-test",
+						"gd-azure-dev",
 						"net"
 					],
 					"path": [
@@ -262,7 +324,7 @@
 					"query": [
 						{
 							"key": "MerchantReferenceId",
-							"value": "POC-UAE-osJe5I"
+							"value": "POC-UAE-7unpWl"
 						}
 					]
 				}
@@ -277,12 +339,12 @@
 					"basic": [
 						{
 							"key": "password",
-							"value": "75b027c6-52da-4153-90c1-b0f69567c198",
+							"value": "faab1120-bc38-4456-becf-c5d9a5e3c423",
 							"type": "string"
 						},
 						{
 							"key": "username",
-							"value": "02671077-f3e3-47d5-8174-56a06b2897b5",
+							"value": "d9fd2b48-16f6-4213-9d39-293139dc2795",
 							"type": "string"
 						}
 					]
@@ -291,7 +353,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"OrderId\": \"0255851e-abe2-4fc0-e702-08dc0b66e0c0\",\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\"\r\n}",
+					"raw": "{\r\n  \"OrderId\": \"192d7d0f-f1c4-426d-dd73-08dc3bde4c14\",\r\n  \"callbackUrl\": \"https://webhook.site/6fee521c-92b2-47dc-94a9-2cf6cb465852\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -299,12 +361,11 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.merchant.geidea.net/pgw/api/v3/direct/void",
+					"raw": "https://api-test.gd-azure-dev.net/pgw/api/v3/direct/void",
 					"protocol": "https",
 					"host": [
-						"api",
-						"merchant",
-						"geidea",
+						"api-test",
+						"gd-azure-dev",
 						"net"
 					],
 					"path": [
@@ -326,12 +387,12 @@
 					"basic": [
 						{
 							"key": "password",
-							"value": "75b027c6-52da-4153-90c1-b0f69567c198",
+							"value": "faab1120-bc38-4456-becf-c5d9a5e3c423",
 							"type": "string"
 						},
 						{
 							"key": "username",
-							"value": "02671077-f3e3-47d5-8174-56a06b2897b5",
+							"value": "d9fd2b48-16f6-4213-9d39-293139dc2795",
 							"type": "string"
 						}
 					]
@@ -340,7 +401,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"orderId\": \"0255851e-abe2-4fc0-e702-08dc0b66e0c0\",\r\n  \"refundAmount\": 10.00\r\n}",
+					"raw": "{\r\n  \"orderId\": \"192d7d0f-f1c4-426d-dd73-08dc3bde4c14\",\r\n  \"refundAmount\": 10.00\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -348,12 +409,11 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.merchant.geidea.net/pgw/api/v1/direct/refund",
+					"raw": "https://api-test.gd-azure-dev.net/pgw/api/v1/direct/refund",
 					"protocol": "https",
 					"host": [
-						"api",
-						"merchant",
-						"geidea",
+						"api-test",
+						"gd-azure-dev",
 						"net"
 					],
 					"path": [
