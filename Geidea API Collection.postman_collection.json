@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "Create Session",
+			"name": "Create Session v2",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -60,7 +60,8 @@
 							"pm.environment.set(\"timestamp\", timestamp);\r",
 							"pm.environment.set(\"signature\", signature);"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -84,7 +85,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"timestamp\": \"{{timestamp}}\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"callbackUrl\": \"https://webhook.site/a9f63bb4-988a-49d9-b532-d3a01bcb1b71\",\r\n  \"cardOnFile\": true,\r\n  \"paymentOperation\": \"Pay\",\r\n  \"cofAgreement\": {\r\n    \"id\": \"{{randomCofAgreementId}}\",\r\n    \"type\": \"UNSCHEDULED\"\r\n  },\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"name\": \"Nike Shoes\",\r\n        \"description\": null,\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"signature\": \"{{signature}}\"\r\n}",
+					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"timestamp\": \"{{timestamp}}\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"callbackUrl\": \"https://webhook.site/6aa197fc-c2b1-4d57-ba48-0dbeeeab1a2e\",\r\n  \"returnUrl\": \"https://www.hsbc.com.hk\",\r\n  \"cardOnFile\": true,\r\n  \"paymentOperation\": \"Pay\",\r\n  \"cofAgreement\": {\r\n    \"id\": \"{{randomCofAgreementId}}\",\r\n    \"type\": \"UNSCHEDULED\"\r\n  },\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"name\": \"Nike Shoes\",\r\n        \"description\": null,\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"signature\": \"{{signature}}\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -111,7 +112,7 @@
 			"response": []
 		},
 		{
-			"name": "Create Session (Tokenized Payment)",
+			"name": "Create Session v2 (Tokenized Payment)",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -162,7 +163,8 @@
 							"pm.environment.set(\"timestamp\", timestamp);\r",
 							"pm.environment.set(\"signature\", signature);"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -186,7 +188,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"timestamp\": \"{{timestamp}}\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"callbackUrl\": \"https://webhook.site/a9f63bb4-988a-49d9-b532-d3a01bcb1b71\",\r\n  \"paymentOperation\": \"Pay\",\r\n  \"tokenId\": \"2a6a6dcb-458b-46a2-094f-08dc3d100b9e\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"name\": \"Nike Shoes\",\r\n        \"description\": null,\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"signature\": \"{{signature}}\"\r\n}",
+					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"timestamp\": \"{{timestamp}}\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"callbackUrl\": \"https://webhook.site/6aa197fc-c2b1-4d57-ba48-0dbeeeab1a2e\",\r\n  \"paymentOperation\": \"Pay\",\r\n  \"tokenId\": \"e8b30724-ac6f-42dd-958d-08dc440671e3\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"name\": \"Nike Shoes\",\r\n        \"description\": null,\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"signature\": \"{{signature}}\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -213,7 +215,7 @@
 			"response": []
 		},
 		{
-			"name": "Create Recurring Payment (Merchant-triggered)",
+			"name": "Pay Token v1",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -278,6 +280,109 @@
 						"pgw",
 						"api",
 						"v1",
+						"direct",
+						"pay",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Pay Token v2",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function generateRandomString(length) {\r",
+							"    var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';\r",
+							"    var result = '';\r",
+							"    for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];\r",
+							"    return result;\r",
+							"}\r",
+							"\r",
+							"function generateSignature(rawString, apiPassword) {\r",
+							"    var signatureHmacSha256 = CryptoJS.HmacSHA256(rawString, apiPassword);\r",
+							"    return CryptoJS.enc.Base64.stringify(signatureHmacSha256);\r",
+							"}\r",
+							"\r",
+							"// Retrieve your stored variables\r",
+							"const merchantPublicKey = 'd9fd2b48-16f6-4213-9d39-293139dc2795';\r",
+							"const apiPassword = 'faab1120-bc38-4456-becf-c5d9a5e3c423';\r",
+							"let currency = 'AED';\r",
+							"\r",
+							"// Generate dynamic data\r",
+							"// let randomReferenceId = 'POC-UAE-' + generateRandomString(6);\r",
+							"// let randomAmount = (Math.random() * 100).toFixed(2);\r",
+							"// let randomCofAgreementId = 'COF' + generateRandomString(6);\r",
+							"\r",
+							"// Get the current date and time\r",
+							"const now = new Date();\r",
+							"let timestamp = now.toLocaleString('en-US', {\r",
+							"    year: 'numeric',\r",
+							"    month: '2-digit',\r",
+							"    day: '2-digit',\r",
+							"    hour: '2-digit',\r",
+							"    minute: '2-digit',\r",
+							"    second: '2-digit',\r",
+							"    hour12: true\r",
+							"}).replace(',', '');\r",
+							"\r",
+							"// Prepare the string to be signed\r",
+							"let rawString = merchantPublicKey + 'c0c3dca8-16fe-4406-0b32-08dc48bd35b5' + timestamp;\r",
+							"\r",
+							"// Generate the signature\r",
+							"let signature = generateSignature(rawString, apiPassword);\r",
+							"\r",
+							"// Update the environment variables\r",
+							"pm.environment.set(\"timestamp\", timestamp);\r",
+							"pm.environment.set(\"signature\", signature);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "faab1120-bc38-4456-becf-c5d9a5e3c423",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "d9fd2b48-16f6-4213-9d39-293139dc2795",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"sessionId\": \"c0c3dca8-16fe-4406-0b32-08dc48bd35b5\",\r\n\t\"initiatedBy\": \"Merchant\",\r\n\t\"agreementId\": \"COF7PPFL6\",\r\n\t\"agreementType\": \"Unscheduled\",\r\n    \"timestamp\": \"{{timestamp}}\",\r\n    \"signature\": \"{{signature}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api-test.gd-azure-dev.net/pgw/api/v2/direct/pay/token",
+					"protocol": "https",
+					"host": [
+						"api-test",
+						"gd-azure-dev",
+						"net"
+					],
+					"path": [
+						"pgw",
+						"api",
+						"v2",
 						"direct",
 						"pay",
 						"token"
@@ -385,7 +490,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"description\": \"HSBC Recurring 2nd Test\",\r\n    \"recurringPaymentAmount\": \"{{randomAmount}}\",\r\n    \"currency\": \"AED\",\r\n    \"startDate\": \"{{startDate}}\",\r\n    \"cycleInterval\": \"day\",\r\n    \"cycleFrequency\": \"1\",\r\n    \"typeOfPayment\": \"RecurringPayment\",\r\n    \"numberOfPayments\": 3,\r\n    \"language\": \"EN\",\r\n    \"paylinkExpirationPeriod\": \"1\",\r\n    \"isFirstPmtPBL\": false,\r\n    \"signature\": \"{{signature}}\",\r\n    \"timestamp\": \"{{timestamp}}\",\r\n    \"customerRequest\": {\r\n        \"name\": \"{{randomName}}\",\r\n        \"email\": \"{{randomEmail}}\",\r\n        \"phoneCountryCode\": \"971\",\r\n        \"phone\": \"{{randomPhone}}\",\r\n        \"customValue\": null\r\n    }\r\n}",
+					"raw": "{\r\n    \"description\": \"HSBC Recurring 2nd Test\",\r\n    \"recurringPaymentAmount\": \"{{randomAmount}}\",\r\n    \"currency\": \"AED\",\r\n    \"startDate\": \"{{startDate}}\",\r\n    \"cycleInterval\": \"day\",\r\n    \"cycleFrequency\": \"1\",\r\n    \"typeOfPayment\": \"RecurringPayment\",\r\n    \"numberOfPayments\": 3,\r\n    \"language\": \"EN\",\r\n    \"paylinkExpirationPeriod\": \"1\",\r\n    \"isFirstPmtPBL\": false,\r\n    \"signature\": \"{{signature}}\",\r\n    \"timestamp\": \"{{timestamp}}\",\r\n    \"customerRequest\": {\r\n        \"name\": \"{{randomName}}\",\r\n        \"email\": \"{{randomEmail}}\",\r\n        \"phoneCountryCode\": \"971\",\r\n        \"phone\": \"{{randomPhone}}\",\r\n        \"customValue\": null\r\n    },\r\n    \"amountVariability\": \"VARIABLE\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -432,7 +537,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://api-test.gd-azure-dev.net/subscriptions/api/v1/direct/subscription/dfdf601a-ab37-4e6b-cea2-08dc4405b94a",
+					"raw": "https://api-test.gd-azure-dev.net/subscriptions/api/v1/direct/subscription/6fde91ba-761e-4e8d-ceee-08dc4405b94a",
 					"protocol": "https",
 					"host": [
 						"api-test",
@@ -445,7 +550,133 @@
 						"v1",
 						"direct",
 						"subscription",
-						"dfdf601a-ab37-4e6b-cea2-08dc4405b94a"
+						"6fde91ba-761e-4e8d-ceee-08dc4405b94a"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Subscription",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function generateRandomString(length) {\r",
+							"    var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';\r",
+							"    var result = '';\r",
+							"    for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];\r",
+							"    return result;\r",
+							"}\r",
+							"\r",
+							"function generateSignature(rawString, apiPassword) {\r",
+							"    var signatureHmacSha256 = CryptoJS.HmacSHA256(rawString, apiPassword);\r",
+							"    return CryptoJS.enc.Base64.stringify(signatureHmacSha256);\r",
+							"}\r",
+							"\r",
+							"function generateRandomName() {\r",
+							"    const firstNames = [\"James\", \"Mary\", \"John\", \"Patricia\", \"Robert\", \"Jennifer\", \"Michael\", \"Linda\", \"William\", \"Elizabeth\"];\r",
+							"    const lastNames = [\"Smith\", \"Johnson\", \"Williams\", \"Brown\", \"Jones\", \"Garcia\", \"Miller\", \"Davis\", \"Rodriguez\", \"Martinez\"];\r",
+							"\r",
+							"    const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];\r",
+							"    const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];\r",
+							"\r",
+							"    return {\r",
+							"        fullName: randomFirstName + \" \" + randomLastName,\r",
+							"        firstName: randomFirstName,\r",
+							"        lastName: randomLastName\r",
+							"    };\r",
+							"}\r",
+							"\r",
+							"// Retrieve your stored variables\r",
+							"const { fullName, firstName, lastName } = generateRandomName();\r",
+							"const merchantPublicKey = 'd9fd2b48-16f6-4213-9d39-293139dc2795';\r",
+							"const apiPassword = 'faab1120-bc38-4456-becf-c5d9a5e3c423';\r",
+							"let currency = 'AED';\r",
+							"\r",
+							"// Generate dynamic data\r",
+							"let randomAmount = (Math.random() * 100).toFixed(2);\r",
+							"let randomPhone = Math.floor(1000000 + Math.random() * 9000000).toString();\r",
+							"let randomEmail = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${Math.random().toString(36).substring(2, 12)}.com`;\r",
+							"\r",
+							"// Get the current date and time\r",
+							"const now = new Date();\r",
+							"let timestamp = now.toLocaleString('en-US', {\r",
+							"    year: 'numeric',\r",
+							"    month: '2-digit',\r",
+							"    day: '2-digit',\r",
+							"    hour: '2-digit',\r",
+							"    minute: '2-digit',\r",
+							"    second: '2-digit',\r",
+							"    hour12: true\r",
+							"}).replace(',', '');\r",
+							"\r",
+							"// Get currenct Date plus 30 minutes to be the Start Date\r",
+							"let startDate = new Date(new Date().getTime() + 30 * 60000).toISOString();\r",
+							"\r",
+							"// Prepare the string to be signed\r",
+							"let rawString = merchantPublicKey + randomAmount + currency + timestamp;\r",
+							"\r",
+							"// Generate the signature\r",
+							"let signature = generateSignature(rawString, apiPassword);\r",
+							"\r",
+							"// Update the environment variables\r",
+							"pm.environment.set(\"randomAmount\", randomAmount);\r",
+							"pm.environment.set(\"randomName\", fullName);\r",
+							"pm.environment.set(\"randomEmail\", randomEmail);\r",
+							"pm.environment.set(\"randomPhone\", randomPhone);\r",
+							"pm.environment.set(\"timestamp\", timestamp);\r",
+							"pm.environment.set(\"startDate\", startDate);\r",
+							"pm.environment.set(\"signature\", signature);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "faab1120-bc38-4456-becf-c5d9a5e3c423",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "d9fd2b48-16f6-4213-9d39-293139dc2795",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"description\": \"Update Subscription POC\",\r\n    \"recurringPaymentAmount\": \"{{randomAmount}}\",\r\n    \"currency\": \"AED\",\r\n    \"cycleInterval\": \"day\",\r\n    \"cycleFrequency\": \"1\",\r\n    \"numberOfPayments\": 3,\r\n    \"typeOfPayment\": \"RecurringPayment\",\r\n    \"language\": \"EN\",\r\n    \"customerId\": \"39092422-01f1-4541-09f3-08dc4407ff9e\",\r\n    \"amountVariability\": \"VARIABLE\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api-test.gd-azure-dev.net/subscriptions/api/v1/direct/subscription/edb8a7a6-9cac-4f26-ceef-08dc4405b94a",
+					"protocol": "https",
+					"host": [
+						"api-test",
+						"gd-azure-dev",
+						"net"
+					],
+					"path": [
+						"subscriptions",
+						"api",
+						"v1",
+						"direct",
+						"subscription",
+						"edb8a7a6-9cac-4f26-ceef-08dc4405b94a"
 					]
 				}
 			},
@@ -571,7 +802,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"timestamp\": \"{{timestamp}}\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"callbackUrl\": \"https://webhook.site/a9f63bb4-988a-49d9-b532-d3a01bcb1b71\",\r\n  \"paymentOperation\": \"Pay\",\r\n  \"subscriptionId\": \"80416566-d563-4acb-ce5e-08dc4405b94a\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"name\": \"Nike Shoes\",\r\n        \"description\": null,\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"signature\": \"{{signature}}\"\r\n}",
+					"raw": "{\r\n  \"amount\": {{randomAmount}},\r\n  \"currency\": \"AED\",\r\n  \"language\": \"en\",\r\n  \"timestamp\": \"{{timestamp}}\",\r\n  \"merchantReferenceId\": \"{{randomReferenceId}}\",\r\n  \"callbackUrl\": \"https://webhook.site/6aa197fc-c2b1-4d57-ba48-0dbeeeab1a2e\",\r\n  \"paymentOperation\": \"Pay\",\r\n  \"subscriptionId\": \"6fde91ba-761e-4e8d-ceee-08dc4405b94a\",\r\n  \"order\": {\r\n    \"items\": [\r\n      {\r\n        \"merchantItemId\": \"product-1234\",\r\n        \"name\": \"Nike Shoes\",\r\n        \"description\": null,\r\n        \"categories\": \"other\",\r\n        \"count\": 2,\r\n        \"price\": 12.34\r\n      }\r\n    ],\r\n    \"description\": \"This is a description\"\r\n  },\r\n  \"signature\": \"{{signature}}\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
