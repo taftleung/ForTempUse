@@ -1,0 +1,50 @@
+materialdesignicons f643 Payer
+materialdesignicons f45e Merchant Payment Platform
+materialdesignicons f317 DMS
+materialdesignicons f070 Payment Service Provider
+group #C6C6C6 USE CASE 1: Setting Up a Subscription
+    Payer->Merchant Payment Platform:1. Request Subscription\nRegistration at Merchant's\nonline platform.
+    group #2f2e7b API: Create Sessoin #white
+        Merchant Payment Platform->DMS:2.1. Submit request.\n//--***With specific mandate parameter.--//
+        DMS->Merchant Payment Platform:2.2. Return order result and status.\n//--***With Payment Link and Mandate Information.--//
+    end
+    alt #9AC98A Setup Subscription through Hosted Payment Page
+        Merchant Payment Platform->DMS:3.1. Redirect to the Hosted Payment Page\n(HPP) using the URL link returned in 2.2.\nor embed it within an iframe.
+        Payer->DMS:3.2. The payer enters payment details on the HPP, such as card\ninformation for card-based recurring payments, authorizing the\nPayment Service Provider to facilitate recurring transactions.
+        Payment Service Provider<->DMS: 3.3. Process registration\nand return result.
+        DMS->Merchant Payment Platform:3.4. HPP is redirected back to\nMerchant's Payment Platform.
+    else Setup Subscription through API
+        group #2f2e7b API: Mandate Registration #white
+            Merchant Payment Platform->DMS:3.5.Submit request.\n//--***With Card Information or Card Token.\n<color:#purple>Please refer to the Card Tokenization section for\ninstructions on how to generate a Card Token.</color>--//
+            Payment Service Provider<->DMS: 3.6. Process registration\nand return result.
+            DMS->Merchant Payment Platform:3.7. Return mandate registration result.--//
+        end
+    end
+    group #2f2e7b Webhook: Order Status #white
+        DMS --> Merchant Payment Platform: 4.1 Return order result and status.\n//--***With Mandate Status and Information.--//
+        Merchant Payment Platform -> DMS: 4.2 Acknowledge receipt of webhook.
+    end
+    group #2f2e7b API: Get ORDER Status #white
+        Merchant Payment Platform->DMS:5.1. Submit request to confirm\nfinal Mandate Status.
+        DMS->Merchant Payment Platform:5.2. Return order result and status.\n//--***With Mandate Status and Information.--//
+    end
+    Merchant Payment Platform->Payer:6. Display result on Merchant's\nonline checkout confirmation\npage.
+end
+group #C6C6C6 USE CASE 2: Receive Recurring Payments
+    note over Payer,Payment Service Provider #C6C6C6:NOTE:\ni. The Payer must have already completed the authorization process as outlined in case #1.\nii. This flow depicts a single payment transaction within a subscription that may involve multiple recurring payments.\niii. The Merchant is responsible for maintaining their own recurring payment schedule and initiating each recurring transaction.
+    group #2f2e7b API: Mandate Execution #white
+        Merchant Payment Platform->DMS:1.1. Submit request.
+        DMS->Payment Service Provider:1.2. Send payment request.
+        DMS->Merchant Payment Platform:1.3. Return response.
+    end
+    Payment Service Provider-->DMS:2. Process payment request\nand return result when it is\ncompleted.
+    group #2f2e7b Webhook: Order Status #white
+        DMS --> Merchant Payment Platform: 3.1 Return order result and status.\n//--***With Mandate Status and Information.--//
+        Merchant Payment Platform -> DMS: 3.2 Acknowledge receipt of webhook.
+    end
+    group #2f2e7b API: Get ORDER Status #white
+        Merchant Payment Platform->DMS:4.1. Submit request to confirm\nfinal Mandate Status.
+        DMS->Merchant Payment Platform:4.2. Return order result and status.\n//--***With Mandate Status and Information.--//
+    end
+    Merchant Payment Platform->Payer:5. Notify the payer of the\npayment result.
+end

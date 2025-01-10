@@ -1,0 +1,63 @@
+materialdesignicons f643 Payer
+materialdesignicons f45e Merchant Payment Platform
+materialdesignicons f317 DMS
+materialdesignicons f070 Payment Service Provider
+group #C6C6C6 USE CASE 1: Receive Instant Payment through the Hosted Payment Page
+    Payer->Merchant Payment Platform:1. Checkout at Merchant's\nonline platform.
+    group #2f2e7b API: Create Session #white
+        Merchant Payment Platform->DMS:2.1. Submit request.
+        DMS->Merchant Payment Platform:2.2. Return order result and status.\n//--***With Payment Link.--//
+    end
+    Merchant Payment Platform->DMS:3. Redirect to the Hosted Payment Page (HPP)\nor embed it within an iframe.
+    alt #9AC98A For Card Payment
+        Payer->DMS:4.1. Enter card details and complete the\n3DS authentication on the HPP, if applicable.
+    else For QR Code Payment
+        Payer<->DMS:4.2 The QR Code is presented in the HPP for the payer\nto scan with their e-wallet or banking app.
+    end
+    Payment Service Provider<->DMS: 5. Process payment and\nreturn payment result.
+    DMS->Merchant Payment Platform:6. HPP is redirected back to\nMerchant's Payment Platform.
+    group #2f2e7b Webhook: Order Status #white
+        DMS --> Merchant Payment Platform: 7.1 Return order status and result.\n//--***With Payment Status and Information.--//
+        Merchant Payment Platform -> DMS: 7.2 Acknowledge receipt of webhook.
+    end
+    group #2f2e7b API: Get Order Status #white
+        Merchant Payment Platform->DMS:8.1. Submit request to confirm\nfinal order and payment status.
+        DMS->Merchant Payment Platform:8.2. Return order status and result.\n//--***With Payment Status and Information.--//
+    end
+    Merchant Payment Platform->Payer:9. Display payment result on\nMerchant's online checkout\nconfirmation page.
+end
+group #C6C6C6 USE CASE 2: Pre-Authorizing Payment via the HPP with Later Payment Cancellation or Capture
+    Payer->Merchant Payment Platform:1. Checkout at Merchant's\nonline platform.
+    group #2f2e7b API: Create Session #white
+        Merchant Payment Platform->DMS:2.1. Submit request.\n//--***With specific payment capture parameter.--//
+        DMS->Merchant Payment Platform:2.2. Return order result and status.\n//--***With Payment Link.--//
+    end
+    Merchant Payment Platform->DMS:3. Redirect to the Hosted Payment Page (HPP)\nor embed it within an iframe.
+    Payer->DMS:4. **(Card Payment Only)** Enter card details and\ncomplete the 3DS authentication on the HPP, if applicable.
+    Payment Service Provider<->DMS: 5. Process authorization\nand return result.
+    DMS->Merchant Payment Platform:6. HPP is redirected back to\nMerchant's Payment Platform.
+    group #2f2e7b Webhook: Order Status #white
+        DMS --> Merchant Payment Platform: 7.1 Return order status and result.\n//--***With Payment Status and Information.--//
+        Merchant Payment Platform -> DMS: 7.2 Acknowledge receipt of webhook.
+    end
+    group #2f2e7b API: Get Order Status #white
+        Merchant Payment Platform->DMS:8.1. Submit request to confirm\nfinal order and payment status.
+        DMS->Merchant Payment Platform:8.2. Return order status and result.\n//--***With Payment Status and Information.--//
+    end
+    Merchant Payment Platform->Payer:9. Display authorization result\non Merchant's online checkout\nconfirmation page.
+    note over Payer,Payment Service Provider #C6C6C6:**Payment Cancellation** can only occur after a successful pre-authorization and before completing a capture.
+        Payer->Merchant Payment Platform:1. Submit payment\ncancellation request.
+    group #2f2e7b API: Void Payment #white
+        Merchant Payment Platform->DMS:2.1. Submit request.\n//--***Using transaction ID retrieved\nfrom the ORDER record.--//
+        DMS<->Payment Service Provider:2.2. Verify payment status and\ninitiate cancellation if eligibility\ncriteria are met.
+        DMS->Merchant Payment Platform:2.3. Return order status and result.\n//--***With Payment Status and Information.--//
+    end
+    Merchant Payment Platform->Payer:3. Notify the payer of the\npayment cancellation result.
+    note over Payer,Payment Service Provider #C6C6C6:**Payment Capture** can only occur after a successful pre-authorization.
+    group #2f2e7b API: Capture Payment #white
+        Merchant Payment Platform->DMS:1.1. Submit request.\n//--***Using transaction ID retrieved\nfrom the ORDER record.--//
+        Payment Service Provider<->DMS:1.2. Process payment and\nreturn payment result.
+        DMS->Merchant Payment Platform:1.3. Return order status and result.\n//--***With Payment Status and Information.--//
+    end
+    Merchant Payment Platform->Payer:2. Notify the payer\nof the payment result.
+end

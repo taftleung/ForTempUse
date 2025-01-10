@@ -1,0 +1,15 @@
+materialdesignicons f45e Merchant Payment Platform
+materialdesignicons f317 DMS
+
+group #C6C6C6 USE CASE: Create a Customer
+  group #2f2e7b API: Create Customer #white
+      Merchant Payment Platform->DMS:1.1. Submit request.\n//--***With basic customer information\nsuch as name, email and phone number.--//
+      DMS->Merchant Payment Platform:1.2. Return customer profile creation result.
+  end
+  alt #9AC98A  If a customer profile needs an update
+      group #2f2e7b API: Update Customer #white
+        Merchant Payment Platform->DMS:2.1. Submit request.\n//--***With new customer information.--//
+        DMS->Merchant Payment Platform:2.2. Return customer profile update result.
+    end
+  end
+end
