@@ -1,25 +1,12 @@
-materialdesignicons f643 Payer
-materialdesignicons f45e Merchant Payment Platform
-materialdesignicons f317 DMS
-materialdesignicons f070 Payment Service Provider
-group #C6C6C6 USE CASE 1: Receive Instant Payment through API
-    Payer->Merchant Payment Platform:1. Checkout at Merchant's\nonline platform.
-    group #2f2e7b API: Create Session #white
-        Merchant Payment Platform->DMS:2.1. Submit request.
-        DMS->Merchant Payment Platform:2.2. Return order result and status.
-    end
-    group #2f2e7b API: Request Payment #white
-        Merchant Payment Platform->DMS:3.1.Submit request.\n//--***With Card Information or Card Token.\n<color:#purple>Please refer to the Card Tokenization section for\ninstructions on how to generate a Card Token.</color>--//
-        Payment Service Provider<->DMS: 3.2. Process payment\nrequest and return result.
-        DMS->Merchant Payment Platform:3.3. Return payment result.--//
-    end
-    group #2f2e7b Webhook: Order Status #white
-        DMS --> Merchant Payment Platform: 4.1 Return order status and result.\n//--***With Payment Status and Information.--//
-        Merchant Payment Platform -> DMS: 4.2 Acknowledge receipt of webhook.
-    end
-    group #2f2e7b API: Get Order Status #white
-        Merchant Payment Platform->DMS:5.1. Submit request to confirm\nfinal order and payment status.
-        DMS->Merchant Payment Platform:5.2. Return order status and result.\n//--***With Payment Status and Information.--//
-    end
-    Merchant Payment Platform->Payer:6. Notify the payer of\nthe payment result.
-end
+Hi Cliff and Team,
+
+I have conducted a POC by adding a new flag to the HPP form request, and it successfully triggers the manual address input flow within the HPP.
+
+From an API design perspective, if minimizing impact to existing API users is a key requirement, I suggest enhancing the logic within the UK Single API and DCMS as follows:
+
+Change the shipping and billing address fields in the API from required to optional.
+If the API user does not submit address fields, DCMS will pass the "enable HPP address input" flag to GP in the background, triggering the manual address input flow.
+If the API user provides any value in the address fields, DCMS will pass a "disable HPP address input" flag to GP, ensuring the provided address is used.
+This approach maintains backward compatibility while introducing flexibility for users who prefer manual address input. Let me know your thoughts or if any further refinements are needed.
+
+Best regards,
