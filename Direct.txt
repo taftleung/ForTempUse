@@ -1,13 +1,45 @@
-Hi YP,
+I wanted to share a concise overview of our mobile payment flows and the associated confirmation logic.
 
-Testing Apple Pay in HPP may introduce some complexities. Here are the key points to consider:
+Mobile Payment Flows
+1. Web2App Flow (Browser to Alipay and Back):
 
-Lack of Official Documentation – There is no official GP guide available for Apple Pay setup. We may need to consult GP to confirm if domain verification or any other configurations (similar to what we did for Geidea) are required.
+From Browser to Alipay:
 
-Testing Constraints – Apple Pay cannot be tested on a local PC. We must access the HPP from a publicly accessible internet network using an iOS device for proper testing.
+The user clicks the “Alipay” button on our online shop page in Safari.
+Our website triggers a deep link (using a custom URL scheme or universal link) like:
+alipay://pay?orderId=12345&amount=50.00&callback=shopapp://paymentResult
+This deep link launches the Alipay app.
+Returning from Alipay to Browser:
 
-Could you please check with our technical team to confirm if we already have the necessary setup in place?
+After processing the payment, Alipay uses the provided callback URL to redirect the user back to our shop page in Safari (or web view) along with the payment result.
+2. App2App Flow (Shopping App to Alipay and Back):
 
-Once everything is set up, we only need to add a single field to the HPP submit form to enable Apple Pay.
+From Shopping App to Alipay:
+
+The user taps “Pay with Alipay” in the shopping app.
+The shopping app constructs and triggers a deep link (or Android intent) like:
+alipay://pay?orderId=12345&amount=50.00&callback=shoppingapp://paymentResult
+This launches the Alipay app with the order details.
+Returning from Alipay to Shopping App:
+
+Once the payment is complete, Alipay calls the callback URL.
+The deep link (or intent) takes the user back to the shopping app, passing along the payment result.
+Payment Confirmation Logic
+While the callback URL provides an immediate, front-end confirmation by redirecting the user back to the merchant’s app or page, this confirmation is considered preliminary. For a robust and secure confirmation of payment status, our backend should also wait for an asynchronous notification (such as a webhook) from the payment service provider (e.g., Alipay).
+
+Key Points:
+
+Frontend (Callback URL):
+
+Primarily used to return the user to the merchant’s app or web page.
+Should not be solely trusted for the actual payment status, since it might fail if the user cancels the process or accidentally closes the app.
+Backend (Payment Notification):
+
+Acts as the single source of trust for the payment status.
+Ensures reliability by confirming the transaction asynchronously, independent of the user interface.
+Note:
+Combining the front-end confirmation (callback URL) with the backend confirmation (payment notification) may introduce additional complexity for the merchant. Therefore, if we follow the existing logic of the HPP flow, the front-end confirmation should be used only to navigate the user back to the merchant's app or page, with the backend payment notification being the definitive source for payment status.
+
+Let me know if you have any questions or need further details.
 
 Best regards,
