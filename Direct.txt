@@ -1,12 +1,13 @@
-Hi Cliff and Team,
+Hi YP,
 
-I have conducted a POC by adding a new flag to the HPP form request, and it successfully triggers the manual address input flow within the HPP.
+Testing Apple Pay in HPP may introduce some complexities. Here are the key points to consider:
 
-From an API design perspective, if minimizing impact to existing API users is a key requirement, I suggest enhancing the logic within the UK Single API and DCMS as follows:
+Lack of Official Documentation – There is no official GP guide available for Apple Pay setup. We may need to consult GP to confirm if domain verification or any other configurations (similar to what we did for Geidea) are required.
 
-Change the shipping and billing address fields in the API from required to optional.
-If the API user does not submit address fields, DCMS will pass the "enable HPP address input" flag to GP in the background, triggering the manual address input flow.
-If the API user provides any value in the address fields, DCMS will pass a "disable HPP address input" flag to GP, ensuring the provided address is used.
-This approach maintains backward compatibility while introducing flexibility for users who prefer manual address input. Let me know your thoughts or if any further refinements are needed.
+Testing Constraints – Apple Pay cannot be tested on a local PC. We must access the HPP from a publicly accessible internet network using an iOS device for proper testing.
+
+Could you please check with our technical team to confirm if we already have the necessary setup in place?
+
+Once everything is set up, we only need to add a single field to the HPP submit form to enable Apple Pay.
 
 Best regards,
