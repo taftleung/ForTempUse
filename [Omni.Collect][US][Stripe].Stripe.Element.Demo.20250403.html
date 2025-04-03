@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Stripe Payment Page Demo v.20250403</title>
+  <!-- If using Basil for “custom” UI mode, load this: -->
+  <script src="https://js.stripe.com/basil/stripe.js"></script>
+  <!-- Otherwise, <script src="https://js.stripe.com/v3"></script> if not using custom ui_mode -->
+
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      background: #fdfdfd;
+    }
+    h1 {
+      margin-bottom: 1em;
+    }
+
+    /* Style the tab container */
+    .tab {
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background-color: #f1f1f1;
+      margin-bottom: 20px;
+    }
+
+    /* Style the buttons that are used to open the tab content */
+    .tab button {
+      background-color: inherit;
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      transition: 0.3s;
+    }
+    /* Change background color of buttons on hover */
+    .tab button:hover {
+      background-color: #ddd;
+    }
+    /* Create an active/current tablink class */
+    .tab button.active {
+      background-color: #ccc;
+    }
+
+    /* Style the tab content */
+    .tabcontent {
+      display: none;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-top: none;
+      margin-bottom: 20px;
+      background: #fff;
+    }
+
+    label {
+      display: inline-block;
+      width: 150px;
+      font-weight: bold;
+    }
+    input[type="text"] {
+      width: 350px;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+    button {
+      margin-left: 10px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ccc;
+      border-top: 2px solid #333;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+	
+    .hidden {
+      display: none;
+    }
+
+    .payment-section {
+      display: none; /* shown after user clicks 'Activate' */
+      margin-top: 20px;
+      border: 1px solid #eee;
+      padding: 15px;
+    }
+
+    .card-element {
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 4px;
+      width: 300px;
+      margin-bottom: 10px;
+    }
+
+    .message {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-top: 20px;
+      margin-bottom: 5px;
+    }
+
+    .small-notice {
+      font-style: italic;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    /* For the custom Checkout flow (ui_mode: custom) */
+    #custom-checkout-form {
+      margin-top: 10px;
+    }
+    #custom-checkout-form button {
+      margin-top: 10px;
+    }
+    #custom-checkout-mount {
+      border: 1px solid #ccc;
+      min-height: 300px;
+      margin-top: 15px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Stripe Payment Page Demo v.20250403</h1>
+
+<!-- Tab links -->
+<div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'Embedded')">Stripe Checkout (ui_mode: embedded)</button>
+  <button class="tablinks" onclick="openTab(event, 'Custom')">Stripe Checkout (ui_mode: custom)</button>
+  <button class="tablinks" onclick="openTab(event, 'SingleElements')">Stripe Elements (Single Payment)</button>
+  <button class="tablinks" onclick="openTab(event, 'RecurringElements')">Stripe Elements (Recurring Payment)</button>
+</div>
+
+<!-- ======================== TAB: Embedded ======================== -->
+<div id="Embedded" class="tabcontent">
+  <h2>Making Payment via Embedded Hosted Payment Page</h2>
+  <div class="section-title">Step 1: Enter Publishable Key & Checkout Session Client Secret</div>
+  <div class="small-notice">
+    Publishable Key from Stripe Dashboard, and Client Secret from a <strong>Checkout Session</strong> (with <code>ui_mode: "embedded"</code>).
+  </div>
+
+  <div>
+    <label>Publishable Key:</label>
+    <input type="text" id="hppPubKey" placeholder="pk_test_123..." />
+  </div>
+  <div>
+    <label>Client Secret (Session):</label>
+    <input type="text" id="hppClientSecret" placeholder="cs_test_abc_secret_xyz..." />
+  </div>
+  <button id="hppActivateBtn">Activate Embedded Checkout</button>
+
+  <div id="hppSection" class="payment-section">
+    <div class="section-title">Step 2: Embedded Checkout</div>
+    <div id="embedded-checkout"></div>
+    <div id="hppMessage" class="message"></div>
+  </div>
+</div>
+
+<!-- ======================== TAB: Custom ======================== -->
+<div id="Custom" class="tabcontent">
+  <h2>Making Payment via Customizable Hosted Payment Page</h2>
+  <div class="section-title">Step 1: Enter Publishable Key & Checkout Session Client Secret</div>
+  <div class="small-notice">
+    Publishable Key from Stripe Dashboard, and Client Secret from a Checkout Session that supports <code>ui_mode: "custom"</code>.
+  </div>
+
+  <div>
+    <label>Publishable Key:</label>
+    <input type="text" id="customPubKey" placeholder="pk_test_123..." />
+  </div>
+  <div>
+    <label>Client Secret (Session):</label>
+    <input type="text" id="customClientSecret" placeholder="cs_test_xyz_secret..." />
+  </div>
+  <button id="customActivateBtn">Activate Custom Checkout</button>
+
+  <div id="customSection" class="payment-section">
+    <div class="section-title">Step 2: Custom Checkout</div>
+    <div id="custom-checkout-mount"></div>
+
+    <form id="custom-checkout-form">
+      <label>Email
+        <input type="text" id="customEmail" placeholder="you@example.com"/>
+      </label>
+      <div id="customEmailErrors" style="color:red;"></div>
+
+      <button id="customSubmitBtn" type="submit">
+        <div class="spinner hidden" id="customSpinner"></div>
+        <span id="customButtonText">Pay Now</span>
+      </button>
+    </form>
+    <div id="customMessage" class="message"></div>
+  </div>
+</div>
+
+<!-- ======================== TAB: Single Elements ======================== -->
+<div id="SingleElements" class="tabcontent">
+  <h2>Making Single Payment via Stripe Elements</h2>
+  <div class="section-title">Step 1: Enter Publishable Key & PaymentIntent Client Secret</div>
+  <div class="small-notice">
+    Publishable Key from Stripe Dashboard, and Client Secret from a PaymentIntent (one-time charge).
+  </div>
+
+  <div>
+    <label>Publishable Key:</label>
+    <input type="text" id="spPubKey" placeholder="pk_test_123...">
+  </div>
+  <div>
+    <label>Client Secret (PaymentIntent):</label>
+    <input type="text" id="spClientSecret" placeholder="pi_abc_secret_xyz...">
+  </div>
+  <button id="spActivateBtn">Activate Single Payment</button>
+
+  <div id="spPaymentSection" class="payment-section">
+    <div class="section-title">Step 2: Enter Card Details</div>
+    <div id="spCardElement" class="card-element"></div>
+    <button id="spPayBtn">Pay Now</button>
+    <div id="spMessage" class="message"></div>
+  </div>
+</div>
+
+<!-- ======================== TAB: Recurring Elements ======================== -->
+<div id="RecurringElements" class="tabcontent">
+  <h2>Setting Up Subscription via Stripe Elements</h2>
+  <div class="section-title">Step 1: Enter Publishable Key & SetupIntent Client Secret</div>
+  <div class="small-notice">
+    Publishable Key from Stripe Dashboard, and Client Secret from a SetupIntent (to store card details for future recurring charges).
+  </div>
+
+  <div>
+    <label>Publishable Key:</label>
+    <input type="text" id="recPubKey" placeholder="pk_test_123...">
+  </div>
+  <div>
+    <label>Client Secret (SetupIntent):</label>
+    <input type="text" id="recSetupIntentSecret" placeholder="seti_abc_secret_xyz...">
+  </div>
+  <button id="recActivateBtn">Activate Recurring Setup</button>
+
+  <div id="recPaymentSection" class="payment-section">
+    <div class="section-title">Step 2: Enter Card Details</div>
+    <div id="recCardElement" class="card-element"></div>
+    <button id="recConfirmBtn">Save Payment Method</button>
+    <div id="recMessage" class="message"></div>
+  </div>
+</div>
+
+<script>
+/*******************************
+ * Tab logic from sample code
+ *******************************/
+function openTab(evt, tabName) {
+  // Hide all tabcontent
+  let tabcontent = document.getElementsByClassName("tabcontent");
+  for (let i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  // Remove "active" from all tablinks
+  let tablinks = document.getElementsByClassName("tablinks");
+  for (let i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+
+  // Show the chosen tab, add "active" to the button
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+// By default, display the first tab
+document.getElementById("Embedded").style.display = "block";
+document.getElementsByClassName("tablinks")[0].className += " active";
+
+
+/****************************************************************
+ * Tab 1: Embedded Checkout
+ ****************************************************************/
+let hppStripe;
+document.getElementById('hppActivateBtn').addEventListener('click', async () => {
+  const pubKey = document.getElementById('hppPubKey').value.trim();
+  const clientSecret = document.getElementById('hppClientSecret').value.trim();
+  const hppMessageEl = document.getElementById('hppMessage');
+
+  if (!pubKey || !clientSecret) {
+    alert("Please enter both Publishable Key and Checkout Session client_secret for the Embedded flow.");
+    return;
+  }
+
+  hppStripe = Stripe(pubKey);
+
+  const fetchClientSecret = async () => clientSecret;
+  try {
+    const checkout = await hppStripe.initEmbeddedCheckout({ fetchClientSecret });
+    checkout.mount('#embedded-checkout');
+
+    document.getElementById('hppSection').style.display = 'block';
+    hppMessageEl.textContent = "";
+  } catch (err) {
+    console.error(err);
+    hppMessageEl.textContent = "Error initializing Embedded Checkout: " + err.message;
+  }
+});
+
+
+/****************************************************************
+ * Tab 2: Custom Checkout
+ ****************************************************************/
+let customStripe, customCheckout;
+// We'll store the original button label so we can revert after load
+let originalCustomButtonLabel = "Pay Now";
+
+document.getElementById('customActivateBtn').addEventListener('click', async () => {
+  const pubKey = document.getElementById('customPubKey').value.trim();
+  const clientSecret = document.getElementById('customClientSecret').value.trim();
+  const customMessageEl = document.getElementById('customMessage');
+
+  if (!pubKey || !clientSecret) {
+    alert("Please enter both Publishable Key and Checkout Session client_secret for ui_mode=custom.");
+    return;
+  }
+
+  customStripe = Stripe(pubKey);
+
+  try {
+    // Provide an async function returning user-supplied clientSecret
+    const fetchClientSecret = async () => clientSecret;
+
+    const appearance = { theme: 'stripe' };
+    customCheckout = await customStripe.initCheckout({
+      fetchClientSecret,
+      elementsOptions: { appearance },
+    });
+
+    // Log the entire session object
+    const sessionData = customCheckout.session() || {};
+    console.log("Full Session Object:", JSON.stringify(sessionData, null, 2));
+
+    // If there's a numeric "minorUnitsAmount", use it:
+    if (sessionData.total && sessionData.total.total.amount) {
+      const totalAmount = sessionData.total.total.amount;
+      originalCustomButtonLabel = `Pay ${totalAmount}`;
+      document.getElementById('customButtonText').textContent = originalCustomButtonLabel;
+    } else {
+      // Otherwise, just keep "Pay Now"
+      originalCustomButtonLabel = "Pay Now";
+    }
+
+    // Create and mount the Payment Element
+    const paymentElement = customCheckout.createPaymentElement();
+    paymentElement.mount('#custom-checkout-mount');
+
+    document.getElementById('customSection').style.display = 'block';
+    customMessageEl.textContent = "";
+  } catch (err) {
+    console.error(err);
+    customMessageEl.textContent = "Error initializing Custom Checkout: " + err.message;
+  }
+});
+
+// On form submit => confirm the payment
+document.getElementById('custom-checkout-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const customMessageEl = document.getElementById('customMessage');
+  customMessageEl.textContent = "";
+
+  const emailInput = document.getElementById('customEmail');
+  const emailErrorsEl = document.getElementById('customEmailErrors');
+  emailErrorsEl.textContent = "";
+  const newEmail = emailInput.value.trim();
+
+  // Optionally update email
+  if (newEmail) {
+    const updateResult = await customCheckout.updateEmail(newEmail);
+    if (updateResult.type === "error") {
+      emailErrorsEl.textContent = updateResult.error.message;
+      return;
+    }
+  }
+
+  // Show spinner, disable button
+  setLoadingCustom(true);
+
+  try {
+    // Attempt to confirm the Checkout Session payment
+    const { error } = await customCheckout.confirm();
+    if (error) {
+      customMessageEl.textContent = error.message;
+    }
+    // On success, the user typically gets redirected
+  } catch (err) {
+    customMessageEl.textContent = err.message;
+  } finally {
+    // Re-enable button, hide spinner
+    setLoadingCustom(false);
+  }
+});
+
+function setLoadingCustom(isLoading) {
+  const submitBtn = document.getElementById('customSubmitBtn');
+  const spinner = document.getElementById('customSpinner');
+  const buttonText = document.getElementById('customButtonText');
+
+  if (isLoading) {
+    submitBtn.disabled = true;
+    spinner.classList.remove('hidden');
+    // Optionally show "Processing..." or hide the text
+    buttonText.textContent = "Processing...";
+  } else {
+    submitBtn.disabled = false;
+    spinner.classList.add('hidden');
+    // Revert to the original label
+    buttonText.textContent = originalCustomButtonLabel;
+  }
+}
+
+/****************************************************************
+ * Tab 3: Single Payment (Stripe Elements)
+ ****************************************************************/
+let spStripe, spCardElement;
+let spClientSecretGlobal = null;
+
+document.getElementById('spActivateBtn').addEventListener('click', () => {
+  const pubKey = document.getElementById('spPubKey').value.trim();
+  const clientSecret = document.getElementById('spClientSecret').value.trim();
+
+  if (!pubKey || !clientSecret) {
+    alert("Please enter both Publishable Key and PaymentIntent Client Secret for Single Payment.");
+    return;
+  }
+
+  spStripe = Stripe(pubKey);
+
+  const elements = spStripe.elements();
+  spCardElement = elements.create("card");
+  spCardElement.mount("#spCardElement");
+
+  spClientSecretGlobal = clientSecret;
+  document.getElementById('spPaymentSection').style.display = 'block';
+});
+
+document.getElementById('spPayBtn').addEventListener('click', async () => {
+  const payBtn = document.getElementById('spPayBtn');
+  const messageEl = document.getElementById('spMessage');
+  messageEl.textContent = "";
+
+  const originalBtnText = payBtn.textContent;
+  payBtn.disabled = true;
+  payBtn.innerHTML = '<span class="spinner"></span>Processing...';
+
+  try {
+    const { paymentIntent, error } = await spStripe.confirmCardPayment(spClientSecretGlobal, {
+      payment_method: {
+        card: spCardElement,
+        billing_details: { name: "Single Payment User" }
+      }
+    });
+
+    if (error) {
+      messageEl.textContent = "Payment failed: " + error.message;
+      return;
+    }
+
+    if (paymentIntent) {
+      if (paymentIntent.status === "succeeded") {
+        messageEl.textContent = "Payment succeeded! " + paymentIntent.id;
+      } else if (paymentIntent.status === "requires_capture") {
+        messageEl.textContent = "Authorized, awaiting capture. " + paymentIntent.id;
+      } else {
+        messageEl.textContent = "Payment status: " + paymentIntent.status;
+      }
+    }
+  } catch (err) {
+    messageEl.textContent = "Error: " + err.message;
+  } finally {
+    payBtn.disabled = false;
+    payBtn.textContent = originalBtnText;
+  }
+});
+
+
+/****************************************************************
+ * Tab 4: Recurring Payment (SetupIntent + Stripe Elements)
+ ****************************************************************/
+let recStripe, recCardElement;
+let recSetupIntentSecretGlobal = null;
+
+document.getElementById('recActivateBtn').addEventListener('click', () => {
+  const pubKey = document.getElementById('recPubKey').value.trim();
+  const setupIntentSecret = document.getElementById('recSetupIntentSecret').value.trim();
+
+  if (!pubKey || !setupIntentSecret) {
+    alert("Please enter both Publishable Key and SetupIntent Secret for Recurring Payment.");
+    return;
+  }
+
+  recStripe = Stripe(pubKey);
+
+  const elements = recStripe.elements();
+  recCardElement = elements.create("card");
+  recCardElement.mount("#recCardElement");
+
+  recSetupIntentSecretGlobal = setupIntentSecret;
+  document.getElementById('recPaymentSection').style.display = 'block';
+});
+
+document.getElementById('recConfirmBtn').addEventListener('click', async () => {
+  const confirmBtn = document.getElementById('recConfirmBtn');
+  const messageEl = document.getElementById('recMessage');
+  messageEl.textContent = "";
+
+  const originalBtnText = confirmBtn.textContent;
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = '<span class="spinner"></span>Saving...';
+
+  try {
+    const { setupIntent, error } = await recStripe.confirmCardSetup(
+      recSetupIntentSecretGlobal,
+      {
+        payment_method: {
+          card: recCardElement,
+          billing_details: { name: "Recurring Payment User" }
+        }
+      }
+    );
+
+    if (error) {
+      messageEl.textContent = "Setup failed: " + error.message;
+      return;
+    }
+
+    if (setupIntent) {
+      if (setupIntent.status === "succeeded") {
+        messageEl.textContent = "Setup succeeded! PaymentMethod: " + setupIntent.payment_method;
+      } else {
+        messageEl.textContent = "Setup status: " + setupIntent.status;
+      }
+    }
+  } catch (err) {
+    messageEl.textContent = "Error: " + err.message;
+  } finally {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = originalBtnText;
+  }
+});
+</script>
+</body>
+</html>

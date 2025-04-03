@@ -1,0 +1,2002 @@
+{
+	"info": {
+		"_postman_id": "9fa9d367-8000-4327-82a1-067d83cf5094",
+		"name": "Stripe API POC 20250403",
+		"description": "This Postman collection demonstrates:\n1. Stripe Checkout flows (Normal, Pre-Authorization, Subscription) with the requested fixes:\n   - Remove product_data[description] at 1.1.1.\n   - Use payment_intent_data[capture_method]=manual at 1.2.2.\n2. Stripe Elements flows (Normal, Pre-Auth, Subscription).\n3. Common endpoints (Retrieve Payment Intent, Refund, etc.).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12409896"
+	},
+	"item": [
+		{
+			"name": "0. Common Setup",
+			"item": [
+				{
+					"name": "Step 0.1 - Create Webhook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json();",
+									"",
+									"if (response.id) {",
+									"    pm.collectionVariables.set(\"webhook_endpoint_id\", response.id);",
+									"    console.log(\"Created webhook endpoint:\", response.id);",
+									"} else {",
+									"    console.warn(\"No webhook endpoint ID returned.\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{stripe_secret_key}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "url",
+									"value": "{{webhook_url}}",
+									"type": "text"
+								},
+								{
+									"key": "enabled_events[]",
+									"value": "payment_intent.amount_capturable_updated",
+									"type": "text"
+								},
+								{
+									"key": "enabled_events[]",
+									"value": "payment_intent.canceled",
+									"type": "text"
+								},
+								{
+									"key": "enabled_events[]",
+									"value": "payment_intent.created",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "enabled_events[]",
+									"value": "payment_intent.partially_funded",
+									"type": "text"
+								},
+								{
+									"key": "enabled_events[]",
+									"value": "payment_intent.payment_failed",
+									"type": "text"
+								},
+								{
+									"key": "enabled_events[]",
+									"value": "payment_intent.processing",
+									"type": "text"
+								},
+								{
+									"key": "enabled_events[]",
+									"value": "payment_intent.requires_action",
+									"type": "text"
+								},
+								{
+									"key": "enabled_events[]",
+									"value": "payment_intent.succeeded",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{stripe_base_url}}/v1/webhook_endpoints",
+							"host": [
+								"{{stripe_base_url}}"
+							],
+							"path": [
+								"v1",
+								"webhook_endpoints"
+							]
+						},
+						"description": "Creates a webhook endpoint for receiving checkout.session.completed, payment_intent.*, invoice.* events."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 0.2 - Retrieve Webhook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json();",
+									"",
+									"if (response.id) {",
+									"    pm.collectionVariables.set(\"webhook_endpoint_id\", response.id);",
+									"    console.log(\"Created webhook endpoint:\", response.id);",
+									"} else {",
+									"    console.warn(\"No webhook endpoint ID returned.\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{stripe_secret_key}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": []
+						},
+						"url": {
+							"raw": "{{stripe_base_url}}/v1/webhook_endpoints",
+							"host": [
+								"{{stripe_base_url}}"
+							],
+							"path": [
+								"v1",
+								"webhook_endpoints"
+							]
+						},
+						"description": "Creates a webhook endpoint for receiving checkout.session.completed, payment_intent.*, invoice.* events."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1. Stripe Checkout (HPP)",
+			"item": [
+				{
+					"name": "1.1 - Single Payment",
+					"item": [
+						{
+							"name": "Step 1.1.1 - Create Price",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Generate random product name",
+											"const randomName = \"product-\" + Math.random().toString(36).substring(2, 8);",
+											"// Generate random price (10.00 - 99.99 USD)",
+											"const randomAmount = Math.floor(Math.random() * 9000) + 1000;",
+											"pm.collectionVariables.set(\"random_name\", randomName);",
+											"pm.collectionVariables.set(\"random_amount\", randomAmount.toString());",
+											"console.log(\"Random Checkout Product:\", randomName, \" Amount:\", randomAmount);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if (jsonData.id) {",
+											"    pm.collectionVariables.set(\"price_id_checkout_single\", jsonData.id);",
+											"    console.log(\"Checkout Single Price ID:\", jsonData.id);",
+											"} else {",
+											"    console.error(\"No Price ID returned.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "unit_amount",
+											"value": "{{random_amount}}",
+											"type": "text"
+										},
+										{
+											"key": "currency",
+											"value": "usd",
+											"type": "text"
+										},
+										{
+											"key": "product_data[name]",
+											"value": "{{random_name}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/prices",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"prices"
+									]
+								},
+								"description": "Creates a one-time Price for normal single payment in Stripe Checkout."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.1.2 - Create Session (UI: hosted)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if(jsonData.id) {",
+											"    pm.collectionVariables.set(\"checkout_session_id_normal\", jsonData.id);",
+											"}",
+											"if(jsonData.url) {",
+											"    console.log(\"Checkout Session URL:\", jsonData.url);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Generate random Client Ref ID\r",
+											"const randomClientRefId = \"POC-\" + Math.random().toString(36).substring(2, 8);\r",
+											"\r",
+											"pm.collectionVariables.set(\"random_client_reference_id\", randomClientRefId);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "success_url",
+											"value": "{{success_url}}",
+											"type": "text"
+										},
+										{
+											"key": "cancel_url",
+											"value": "{{cancel_url}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][price]",
+											"value": "{{price_id_checkout_single}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][quantity]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "mode",
+											"value": "payment",
+											"type": "text"
+										},
+										{
+											"key": "ui_mode",
+											"value": "hosted",
+											"type": "text"
+										},
+										{
+											"key": "client_reference_id",
+											"value": "{{random_client_reference_id}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/checkout/sessions",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"checkout",
+										"sessions"
+									]
+								},
+								"description": "Creates a Stripe Checkout Session for a normal single payment (auto-capture)."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.1.3 - Create Session (UI: embedded)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if(jsonData.id) {",
+											"    pm.collectionVariables.set(\"checkout_session_id_normal\", jsonData.id);",
+											"}",
+											"if(jsonData.url) {",
+											"    console.log(\"Checkout Session URL:\", jsonData.url);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Generate random Client Ref ID\r",
+											"const randomClientRefId = \"POC-\" + Math.random().toString(36).substring(2, 8);\r",
+											"\r",
+											"pm.collectionVariables.set(\"random_client_reference_id\", randomClientRefId);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "return_url",
+											"value": "{{return_url}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][price]",
+											"value": "{{price_id_checkout_single}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][quantity]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "mode",
+											"value": "payment",
+											"type": "text"
+										},
+										{
+											"key": "ui_mode",
+											"value": "embedded",
+											"type": "text"
+										},
+										{
+											"key": "client_reference_id",
+											"value": "{{random_client_reference_id}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/checkout/sessions",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"checkout",
+										"sessions"
+									]
+								},
+								"description": "Creates a Stripe Checkout Session for a normal single payment (auto-capture)."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.1.4 - Create Session (UI: custom)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if(jsonData.id) {",
+											"    pm.collectionVariables.set(\"checkout_session_id_normal\", jsonData.id);",
+											"}",
+											"if(jsonData.url) {",
+											"    console.log(\"Checkout Session URL:\", jsonData.url);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Generate random Client Ref ID\r",
+											"const randomClientRefId = \"POC-\" + Math.random().toString(36).substring(2, 8);\r",
+											"\r",
+											"pm.collectionVariables.set(\"random_client_reference_id\", randomClientRefId);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "return_url",
+											"value": "{{return_url}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][price]",
+											"value": "{{price_id_checkout_single}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][quantity]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "mode",
+											"value": "payment",
+											"type": "text"
+										},
+										{
+											"key": "ui_mode",
+											"value": "custom",
+											"type": "text"
+										},
+										{
+											"key": "client_reference_id",
+											"value": "{{random_client_reference_id}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/checkout/sessions",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"checkout",
+										"sessions"
+									]
+								},
+								"description": "Creates a Stripe Checkout Session for a normal single payment (auto-capture)."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.1.5 - [Optional] Retrieve Session (expanding Payment Intent)",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "expand[]",
+											"value": "payment_intent",
+											"type": "text"
+										},
+										{
+											"key": "expand[]",
+											"value": "payment_intent.payment_method",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/checkout/sessions/{{checkout_session_id_normal}}",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"checkout",
+										"sessions",
+										"{{checkout_session_id_normal}}"
+									]
+								},
+								"description": "Retrieve a Payment Intent by ID. Replace {{payment_intent_id}} with an actual ID from prior steps."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "1.2 - Single Payment (Manual Capture)",
+					"item": [
+						{
+							"name": "Step 1.2.1 - Create Price",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Generate random product name",
+											"const randomName = \"product-\" + Math.random().toString(36).substring(2, 8);",
+											"// Generate random price (10.00 - 99.99 USD)",
+											"const randomAmount = Math.floor(Math.random() * 9000) + 1000;",
+											"pm.collectionVariables.set(\"random_name\", randomName);",
+											"pm.collectionVariables.set(\"random_amount\", randomAmount.toString());",
+											"console.log(\"Random PreAuth Product:\", randomName, \" Amount:\", randomAmount);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if (jsonData.id) {",
+											"    pm.collectionVariables.set(\"price_id_checkout_preauth\", jsonData.id);",
+											"    console.log(\"Checkout PreAuth Price ID:\", jsonData.id);",
+											"} else {",
+											"    console.error(\"No Price ID returned.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "unit_amount",
+											"value": "{{random_amount}}",
+											"type": "text"
+										},
+										{
+											"key": "currency",
+											"value": "usd",
+											"type": "text"
+										},
+										{
+											"key": "product_data[name]",
+											"value": "{{random_name}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/prices",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"prices"
+									]
+								},
+								"description": "Creates a one-time Price for the pre-authorization (manual capture) scenario."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.2.2 - Create Session (Pre-Authorization Model)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if(jsonData.id) {",
+											"    pm.collectionVariables.set(\"checkout_session_id_preauth\", jsonData.id);",
+											"}",
+											"if(jsonData.url) {",
+											"    console.log(\"Checkout PreAuth URL:\", jsonData.url);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "mode",
+											"value": "payment",
+											"type": "text"
+										},
+										{
+											"key": "payment_intent_data[capture_method]",
+											"value": "manual",
+											"type": "text"
+										},
+										{
+											"key": "payment_intent_data[description]",
+											"value": "Pre-auth via Checkout",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][price]",
+											"value": "{{price_id_checkout_preauth}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][quantity]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "success_url",
+											"value": "{{success_url}}",
+											"type": "text"
+										},
+										{
+											"key": "cancel_url",
+											"value": "{{cancel_url}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/checkout/sessions",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"checkout",
+										"sessions"
+									]
+								},
+								"description": "Checkout Session that creates a Payment Intent with manual capture. Funds authorized, not captured automatically."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.2.3 - Retrieve Session (expanding Payment Intent)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let data = pm.response.json();",
+											"if(data.payment_intent.id){",
+											"   pm.collectionVariables.set(\"pi_checkout_preauth_id\", data.payment_intent.id);",
+											"   console.log(\"Payment Intent for PreAuth:\", data.payment_intent.id);",
+											"} else {",
+											"   console.warn(\"No payment_intent in session.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "expand[]",
+											"value": "payment_intent",
+											"type": "text"
+										},
+										{
+											"key": "expand[]",
+											"value": "payment_intent.payment_method",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/checkout/sessions/{{checkout_session_id_preauth}}",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"checkout",
+										"sessions",
+										"{{checkout_session_id_preauth}}"
+									]
+								},
+								"description": "Retrieve the Checkout Session to see which Payment Intent was created."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.2.4 - Capture Payment Intent",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "amount_to_capture",
+											"value": "1000",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/payment_intents/{{pi_checkout_preauth_id}}/capture",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"payment_intents",
+										"{{pi_checkout_preauth_id}}",
+										"capture"
+									]
+								},
+								"description": "Captures the Payment Intent that was authorized via Checkout with manual capture."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.2.5 - [Optional] Cancel Payment Intent",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": []
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/payment_intents/{{pi_checkout_preauth_id}}/cancel",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"payment_intents",
+										"{{pi_checkout_preauth_id}}",
+										"cancel"
+									]
+								},
+								"description": "Captures the Payment Intent that was authorized via Checkout with manual capture."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "1.3 - Subscription (Recurring Payment)",
+					"item": [
+						{
+							"name": "Step 1.3.1 - Create Recurring Price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if(jsonData.id) {",
+											"    pm.collectionVariables.set(\"price_id_checkout_sub\", jsonData.id);",
+											"    console.log(\"Recurring Price ID (Checkout):\", jsonData.id);",
+											"} else {",
+											"    console.error(\"No recurring Price ID returned.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Generate random product name\r",
+											"const randomName = \"product-\" + Math.random().toString(36).substring(2, 8);\r",
+											"// Generate random price (10.00 - 99.99 USD)\r",
+											"const randomAmount = Math.floor(Math.random() * 9000) + 1000;\r",
+											"pm.collectionVariables.set(\"random_name\", randomName);\r",
+											"pm.collectionVariables.set(\"random_amount\", randomAmount.toString());\r",
+											"console.log(\"Random PreAuth Product:\", randomName, \" Amount:\", randomAmount);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "currency",
+											"value": "usd",
+											"type": "text"
+										},
+										{
+											"key": "recurring[interval]",
+											"value": "month",
+											"type": "text"
+										},
+										{
+											"key": "unit_amount",
+											"value": "{{random_amount}}",
+											"type": "text"
+										},
+										{
+											"key": "product_data[name]",
+											"value": "{{random_name}}",
+											"type": "text"
+										},
+										{
+											"key": "nickname",
+											"value": "Monthly Recurring (Checkout)",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/prices",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"prices"
+									]
+								},
+								"description": "Creates a monthly recurring Price (e.g. $9.99) for subscription via Stripe Checkout."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.3.2 - Create Session - Subscription",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if(jsonData.id) {",
+											"    pm.collectionVariables.set(\"checkout_session_id_sub\", jsonData.id);",
+											"}",
+											"if(jsonData.url) {",
+											"    console.log(\"Checkout Subscription URL:\", jsonData.url);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "success_url",
+											"value": "{{success_url}}",
+											"type": "text"
+										},
+										{
+											"key": "cancel_url",
+											"value": "{{cancel_url}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][price]",
+											"value": "{{price_id_checkout_sub}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][quantity]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "mode",
+											"value": "subscription",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/checkout/sessions",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"checkout",
+										"sessions"
+									]
+								},
+								"description": "Creates a Checkout Session for a subscription. After payment, Stripe creates a Subscription object."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.3.3 - Create Session - Subscription (UI mode: embedded)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if(jsonData.id) {",
+											"    pm.collectionVariables.set(\"checkout_session_id_sub\", jsonData.id);",
+											"}",
+											"if(jsonData.url) {",
+											"    console.log(\"Checkout Subscription URL:\", jsonData.url);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "return_url",
+											"value": "{{return_url}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][price]",
+											"value": "{{price_id_checkout_sub}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][quantity]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "mode",
+											"value": "subscription",
+											"type": "text"
+										},
+										{
+											"key": "ui_mode",
+											"value": "embedded",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/checkout/sessions",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"checkout",
+										"sessions"
+									]
+								},
+								"description": "Creates a Checkout Session for a subscription. After payment, Stripe creates a Subscription object."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.3.4 - Create Session - Subscription (UI mode: custom)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if(jsonData.id) {",
+											"    pm.collectionVariables.set(\"checkout_session_id_sub\", jsonData.id);",
+											"}",
+											"if(jsonData.url) {",
+											"    console.log(\"Checkout Subscription URL:\", jsonData.url);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "return_url",
+											"value": "{{return_url}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][price]",
+											"value": "{{price_id_checkout_sub}}",
+											"type": "text"
+										},
+										{
+											"key": "line_items[0][quantity]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "mode",
+											"value": "subscription",
+											"type": "text"
+										},
+										{
+											"key": "ui_mode",
+											"value": "custom",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/checkout/sessions",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"checkout",
+										"sessions"
+									]
+								},
+								"description": "Creates a Checkout Session for a subscription. After payment, Stripe creates a Subscription object."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.3.5 - Retrieve Session (expanding Subscription)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let data = pm.response.json();",
+											"if(data.subscription.id){",
+											"   pm.collectionVariables.set(\"hpp_subscription_id\", data.subscription.id);",
+											"   //console.log(\"Subscription ID from HPP:\", data.subscription.id);",
+											"} else {",
+											"   console.warn(\"No Subscription in session.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "expand[]",
+											"value": "subscription",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/checkout/sessions/{{checkout_session_id_sub}}",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"checkout",
+										"sessions",
+										"{{checkout_session_id_sub}}"
+									]
+								},
+								"description": "Retrieve the Checkout Session to see which Payment Intent was created."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 1.3.6 - [Optional] Retrieve Subscription",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/subscriptions/{{hpp_subscription_id}}",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"subscriptions",
+										"{{hpp_subscription_id}}"
+									]
+								},
+								"description": "Retrieve a Subscription by ID to check status or details."
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "2. Stripe Elements (JS script)",
+			"item": [
+				{
+					"name": "2.1 - Single Payment",
+					"item": [
+						{
+							"name": "Step 2.1.1 - Create Payment Intent (auto capture)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "amount",
+											"value": "2000",
+											"type": "text"
+										},
+										{
+											"key": "currency",
+											"value": "usd",
+											"type": "text"
+										},
+										{
+											"key": "payment_method_types[]",
+											"value": "card",
+											"type": "text"
+										},
+										{
+											"key": "confirm",
+											"value": "true",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/payment_intents",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"payment_intents"
+									]
+								},
+								"description": "Simulating a Stripe Elements flow by providing card data directly. This automatically confirms and captures the payment."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "2.2 - Single Payment (Manual Capture)",
+					"item": [
+						{
+							"name": "Step 2.2.1 - Create Payment Intent (manual capture)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "amount",
+											"value": "4500",
+											"type": "text"
+										},
+										{
+											"key": "currency",
+											"value": "usd",
+											"type": "text"
+										},
+										{
+											"key": "capture_method",
+											"value": "manual",
+											"type": "text"
+										},
+										{
+											"key": "payment_method_types[]",
+											"value": "card",
+											"type": "text"
+										},
+										{
+											"key": "confirm",
+											"value": "true",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/payment_intents",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"payment_intents"
+									]
+								},
+								"description": "Creates a Payment Intent with manual capture, simulating an Elements flow (card details). Authorizes but does not capture."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 2.2.2 - Capture Payment Intent",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// You can store the Payment Intent ID from step 2.2.1 in 'last_created_pi_id' in the Tests tab if needed."
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/payment_intents/pi_3R59J204OJLZJ0l20ofWsACd/capture",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"payment_intents",
+										"pi_3R59J204OJLZJ0l20ofWsACd",
+										"capture"
+									]
+								},
+								"description": "Captures the last Payment Intent created in step 2.2.1. You must store the ID in 'last_created_pi_id' via a Test script."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "2.3 - Subscription (Recurring Payment)",
+					"item": [
+						{
+							"name": "Step 2.3.1 - Create Customer",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let resp = pm.response.json();",
+											"if(resp.id){",
+											"    pm.collectionVariables.set(\"elements_sub_customer_id\", resp.id);",
+											"    console.log(\"Created Customer:\", resp.id);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "name",
+											"value": "POC Name",
+											"type": "text"
+										},
+										{
+											"key": "email",
+											"value": "poc@poc.com",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/customers",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"customers"
+									]
+								},
+								"description": "We'll create a Customer to attach the Payment Method, then create a Subscription. In real Elements flow, you'd collect card data client-side."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 2.3.2 - Create Recurring Price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonData = pm.response.json();",
+											"if(jsonData.id) {",
+											"    pm.collectionVariables.set(\"price_id_elements_sub\", jsonData.id);",
+											"    console.log(\"Recurring Price ID (Elements):\", jsonData.id);",
+											"} else {",
+											"    console.error(\"No recurring Price ID returned.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Generate random product name\r",
+											"const randomName = \"product-\" + Math.random().toString(36).substring(2, 8);\r",
+											"// Generate random price (10.00 - 99.99 USD)\r",
+											"const randomAmount = Math.floor(Math.random() * 9000) + 1000;\r",
+											"pm.collectionVariables.set(\"random_name\", randomName);\r",
+											"pm.collectionVariables.set(\"random_amount\", randomAmount.toString());\r",
+											"console.log(\"Random PreAuth Product:\", randomName, \" Amount:\", randomAmount);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "currency",
+											"value": "usd",
+											"type": "text"
+										},
+										{
+											"key": "recurring[interval]",
+											"value": "month",
+											"type": "text"
+										},
+										{
+											"key": "unit_amount",
+											"value": "{{random_amount}}",
+											"type": "text"
+										},
+										{
+											"key": "product_data[name]",
+											"value": "{{random_name}}",
+											"type": "text"
+										},
+										{
+											"key": "nickname",
+											"value": "Monthly Recurring (Checkout)",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/prices",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"prices"
+									]
+								},
+								"description": "Creates a monthly recurring Price (e.g. $9.99) for subscription via Stripe Checkout."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 2.3.3 - Create Setup Intent",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "payment_method_types[]",
+											"value": "card",
+											"type": "text"
+										},
+										{
+											"key": "customer",
+											"value": "{{elements_sub_customer_id}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/setup_intents",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"setup_intents"
+									]
+								},
+								"description": "We'll create a Customer to attach the Payment Method, then create a Subscription. In real Elements flow, you'd collect card data client-side."
+							},
+							"response": []
+						},
+						{
+							"name": "Step 2.3.4 - Create Subscription",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{stripe_secret_key}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "customer",
+											"value": "{{elements_sub_customer_id}}",
+											"type": "text"
+										},
+										{
+											"key": "items[0][price]",
+											"value": "{{price_id_elements_sub}}",
+											"type": "text"
+										},
+										{
+											"key": "default_payment_method",
+											"value": "pm_1R9lV504OJLZJ0l2eeZoxpmy",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{stripe_base_url}}/v1/subscriptions",
+									"host": [
+										"{{stripe_base_url}}"
+									],
+									"path": [
+										"v1",
+										"subscriptions"
+									]
+								},
+								"description": "Creates a Subscription with the recurring Price, using the Payment Method attached to the Customer."
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "3. Refund",
+			"item": [
+				{
+					"name": "Step 3.1 - Create Refund",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{stripe_secret_key}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "charge",
+									"value": "{{charge_id}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{stripe_base_url}}/v1/refunds",
+							"host": [
+								"{{stripe_base_url}}"
+							],
+							"path": [
+								"v1",
+								"refunds"
+							]
+						},
+						"description": "Pass either charge=<charge_id> or payment_intent=<pi_id> to create a refund. Default here uses charge."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 3.2 - Retrieve Refund",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{stripe_secret_key}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "payment_intent",
+									"value": "{{payment_intent_id}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{stripe_base_url}}/v1/refunds",
+							"host": [
+								"{{stripe_base_url}}"
+							],
+							"path": [
+								"v1",
+								"refunds"
+							]
+						},
+						"description": "Pass either charge=<charge_id> or payment_intent=<pi_id> to create a refund. Default here uses charge."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "stripe_base_url",
+			"value": "https://api.stripe.com"
+		},
+		{
+			"key": "stripe_secret_key",
+			"value": "sk_test_51QjLHs04OJLZJ0l2JlQPxKGkWB0zk0SzCTWzSgTlrrfE73PdPudFk0k2GFGTInWof45YDteDkNn77Aif9H60j9TR00FsHwSH7l"
+		},
+		{
+			"key": "webhook_url",
+			"value": "https://webhook.site/433d2091-fa07-47f0-acee-5c21465b6301"
+		},
+		{
+			"key": "webhook_endpoint_id",
+			"value": ""
+		},
+		{
+			"key": "success_url",
+			"value": "https://example.com/success"
+		},
+		{
+			"key": "cancel_url",
+			"value": "https://example.com/cancel"
+		},
+		{
+			"key": "return_url",
+			"value": "https://example.com/return",
+			"type": "string"
+		},
+		{
+			"key": "random_name",
+			"value": ""
+		},
+		{
+			"key": "random_amount",
+			"value": ""
+		},
+		{
+			"key": "price_id_checkout_single",
+			"value": ""
+		},
+		{
+			"key": "checkout_session_id_normal",
+			"value": ""
+		},
+		{
+			"key": "price_id_checkout_preauth",
+			"value": ""
+		},
+		{
+			"key": "checkout_session_id_preauth",
+			"value": ""
+		},
+		{
+			"key": "pi_checkout_preauth_id",
+			"value": "pi_3QksuB04OJLZJ0l208OyiVmN"
+		},
+		{
+			"key": "price_id_checkout_sub",
+			"value": ""
+		},
+		{
+			"key": "checkout_session_id_sub",
+			"value": ""
+		},
+		{
+			"key": "price_id_elements_sub",
+			"value": ""
+		},
+		{
+			"key": "elements_sub_customer_id",
+			"value": ""
+		},
+		{
+			"key": "pm_card_elements_sub",
+			"value": ""
+		},
+		{
+			"key": "payment_intent_id",
+			"value": "pi_3Qs1Xq04OJLZJ0l20WIxEMdc"
+		},
+		{
+			"key": "charge_id",
+			"value": ""
+		},
+		{
+			"key": "subscription_id",
+			"value": ""
+		},
+		{
+			"key": "last_created_pi_id",
+			"value": ""
+		},
+		{
+			"key": "random_client_reference_id",
+			"value": ""
+		},
+		{
+			"key": "refund_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hpp_subscription_id",
+			"value": ""
+		},
+		{
+			"key": "price_id_element_sub",
+			"value": ""
+		}
+	]
+}
