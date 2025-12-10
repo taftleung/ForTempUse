@@ -1,0 +1,211 @@
+// =================================================================================
+// 1) PMLIB AND FORGE LOADERS
+// Utilities to load jsrsasign (pmlib) and forge for standard crypto functions.
+// These libraries must be stored in collection variables 'pmlib_code' and 'forge_code'.
+// =================================================================================
+
+let _forgeLoaded = false;
+function ensureForgeLoaded() {
+    if (_forgeLoaded && typeof forge !== 'undefined') return forge;
+
+    const code = pm.collectionVariables.get('forge_code');
+    if (!code) throw new Error('forge_code collection variable is empty.');
+
+    // ---- browser-bundle shim: provide a local "window" for forge ----
+    if (typeof window === 'undefined') {
+        var window = {}; // visible inside eval below
+    }
+
+    eval(code); // forge sets itself on global or window.forge
+
+    if (typeof forge === 'undefined' && window && window.forge) {
+        forge = window.forge; // grab it from window if needed
+    }
+
+    if (typeof forge === 'undefined') {
+        throw new Error('forge is still undefined after eval(forge_code).');
+    }
+
+    _forgeLoaded = true;
+    return forge;
+}
+
+let _pmlibCache = null;
+function ensurePmlibLoaded() {
+    if (_pmlibCache) return _pmlibCache;
+
+    const code = pm.collectionVariables.get('pmlib_code');
+    if (!code) throw new Error('pmlib_code collection variable is empty.');
+
+    eval(code); 
+    if (typeof pmlib === 'undefined' || !pmlib.rs) {
+        throw new Error('pmlib not available after eval(pmlib_code).');
+    }
+
+    _pmlibCache = {
+        root: pmlib,
+        rs: pmlib.rs,
+        KEYUTIL: pmlib.rs.KEYUTIL,
+        KJUR: pmlib.rs.KJUR
+    };
+    return _pmlibCache;
+}
+
+// =================================================================================
+// 2) ENCODING AND XML PARSING HELPERS
+// Functions for Base64/string conversion and extracting XML node content.
+// =================================================================================
+
+function bytesToRawString(bytes) {
+    let s = '';
+    for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return s;
+}
+function rawStringToBytes(str) {
+    const out = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; i++) out[i] = str.charCodeAt(i) & 0xff;
+    return out;
+}
+function bytesToB64(bytes) {
+    return Buffer.from(bytes).toString('base64');
+}
+function b64ToBytes(b64) {
+    return new Uint8Array(Buffer.from(b64, 'base64'));
+}
+
+function extractSimpleTag(xml, tagName) {
+    // Note: uses /i for case-insensitivity on Postman v9's older regex engine
+    const re = new RegExp('<' + tagName + '[^>]*>([\\s\\S]*?)<\\/' + tagName + '>', 'i'); 
+    const m = xml.match(re);
+    return m ? m[1].trim() : null;
+}
+
+// =================================================================================
+// 3) MESSAGE SECURITY: DECRYPTION AND SIGNATURE VERIFICATION (RESPONSE)
+// Decrypts the OOS response body and verifies the OOS signature.
+// API SPEC REFERENCE: Section 3.2.6 Message Security
+// =================================================================================
+
+// ---------------------------------------------------------------------------------
+// 3.1 SYMMETRIC DECRYPTION (via forge)
+// ALGORITHM: AES-256-GCM
+// PARAMETERS: Key Size = 32 bytes (256-bit), IV Size = 12 bytes (96-bit), Tag Length = 128 bits (16 bytes)
+// INPUT: Session Key, IV, Ciphertext, and Authentication Tag
+// OUTPUT: Decrypted <signedContent> XML string
+// ---------------------------------------------------------------------------------
+function aesGcmDecryptWithForge(sessionKeyBytes, ivBytes, ciphertextBytes, tagBytes) {
+    const forge = ensureForgeLoaded();
+    const keyStr  = bytesToRawString(sessionKeyBytes);
+    const ivStr   = bytesToRawString(ivBytes);
+    const ciphStr = bytesToRawString(ciphertextBytes);
+    const tagStr  = bytesToRawString(tagBytes);
+    
+    const decipher = forge.cipher.createDecipher('AES-GCM', keyStr);
+    decipher.start({
+        iv: ivStr,
+        tagLength: 128,
+        tag: forge.util.createBuffer(tagStr)
+    });
+    decipher.update(forge.util.createBuffer(ciphStr, 'raw'));
+    const ok = decipher.finish();
+    if (!ok) throw new Error('AES-GCM decryption failed (tag mismatch).');
+
+    return decipher.output.toString('utf8');
+}
+
+
+(function mainTests() {
+    const body = pm.response.text();
+    if (!body || body.indexOf('<encryptedContent') === -1) {
+        console.warn('Empty or non-encrypted response body – nothing to decrypt.');
+        return;
+    }
+
+    const { rs, KEYUTIL, KJUR } = ensurePmlibLoaded();
+
+    const ivB64     = extractSimpleTag(body, 'iv');
+    const ciphB64   = extractSimpleTag(body, 'ciphertext');
+    const tagB64    = extractSimpleTag(body, 'authenticationTag');
+    const encKeyB64 = extractSimpleTag(body, 'encryptedKey');
+
+    if (!ivB64 || !ciphB64 || !tagB64 || !encKeyB64) {
+        console.warn('Missing encryption elements in response – cannot decrypt.');
+        return;
+    }
+
+    // ---------------------------------------------------------------------------------
+    // 3.2 ASYMMETRIC KEY UNWRAP (KEY DECRYPTION)
+    // ALGORITHM: RSAES-OAEP with SHA-256 and MGF1-SHA256 (RSAOAEP256)
+    // DECRYPTION KEY: PG Private Key (pm.collectionVariables.get('pg_private_key_pem'))
+    // INPUT: <encryptedKey> Base64 content from the response
+    // OUTPUT: The original AES-256 Symmetric Key
+    //
+    // API SPEC REFERENCE: Section 3.2.6.4 Encryption
+    // ---------------------------------------------------------------------------------
+    const encKeyHex = rs.b64tohex(encKeyB64);
+
+    const prvPem = pm.collectionVariables.get('pg_private_key_pem');
+    if (!prvPem) {
+        console.warn('pg_private_key_pem is not set – cannot decrypt session key.');
+        return;
+    }
+    const prvKeyObj = KEYUTIL.getKey(prvPem);
+
+    const sessionKeyRaw = KJUR.crypto.Cipher.decrypt(encKeyHex, prvKeyObj, 'RSAOAEP256');
+    const sessionKeyBytes = rawStringToBytes(sessionKeyRaw);
+
+    // Decrypt the signed content using the recovered key (using forge helper 3.1)
+    const ivBytes   = b64ToBytes(ivB64);
+    const ciphBytes = b64ToBytes(ciphB64);
+    const tagBytes  = b64ToBytes(tagB64);
+    const signedContentXml = aesGcmDecryptWithForge(sessionKeyBytes, ivBytes, ciphBytes, tagBytes);
+
+    const contentB64   = extractSimpleTag(signedContentXml, 'content');
+    const signatureB64 = extractSimpleTag(signedContentXml, 'signature');
+    if (!contentB64 || !signatureB64) {
+        console.warn('signedContent XML is missing <content> or <signature>.');
+        console.log('signedContentXml =\n', signedContentXml);
+        return;
+    }
+
+    const plaintextXml = Buffer.from(contentB64, 'base64').toString('utf8');
+
+    // ---------------------------------------------------------------------------------
+    // 3.3 SIGNATURE VERIFICATION (OOS Response Signature)
+    // ALGORITHM: RSASSA-PSS (RSA-PSS) with SHA-256 and MGF1-SHA256
+    // PARAMETERS: Salt Length = 32 bytes ('psssaltlen: 32')
+    // VERIFICATION KEY: OOS WS Public Key (pm.collectionVariables.get('oos_ws_public_key_pem'))
+    // INPUT: Plaintext response document (<content> tag) and Base64 signature (<signature> tag)
+    //
+    // API SPEC REFERENCE: Section 3.2.6.3 Signature
+    // ---------------------------------------------------------------------------------
+    const sigHex = rs.b64tohex(signatureB64);
+    const certPem = pm.collectionVariables.get('oos_ws_public_key_pem');
+    let sigOk = false;
+    
+    if (certPem) {
+        const pubKeyObj = KEYUTIL.getKey(certPem);
+        const sig = new KJUR.crypto.Signature({
+            alg: 'SHA256withRSAandMGF1',
+            psssaltlen: 32
+        });
+        sig.init(pubKeyObj);
+        sig.updateString(plaintextXml);
+        sigOk = sig.verify(sigHex);
+    } else {
+        console.warn('oos_ws_public_key_pem not set – skipping signature verification.');
+    }
+
+    if (pm.collectionVariables.get('debug_log') === 'true') {
+        console.log('--- Octopus encrypted response body ---\n', body);
+        console.log('--- Octopus signedContent (decrypted) ---\n', signedContentXml);
+        console.log('--- Octopus plaintext XML ---\n', plaintextXml);
+        console.log('Signature valid =', sigOk);
+    }
+
+    pm.collectionVariables.set('last_plaintext_response', plaintextXml);
+
+    pm.test('Octopus response signature is valid', function () {
+        pm.expect(sigOk, 'RSA-PSS signature must verify').to.be.true;
+    });
+})();
