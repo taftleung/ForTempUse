@@ -1,0 +1,942 @@
+openapi: 3.1.0
+info:
+  title: Octopus Online Payment 2.0
+  version: 1.0.0
+  summary: Plaintext business payloads for Octopus Online Payment 2.0, including the
+    Payment Result callback.
+  description: |
+    Logical (plaintext) view of the Octopus Online Payment 2.0 Web APIs.
+
+    This document models:
+    - Payment Request Creation
+    - Payment Request Enquiry
+    - Payment Request Cancellation
+    - Payment Result Submission (as an OpenAPI callback from OOS to the payment gateway)
+
+    ---
+    **IMPORTANT – Message-level Security on the Wire**
+    ---
+    Although this specification models the HTTP request and response bodies as the plaintext XML payloads (e.g., `<paymentRequestCollection>`, `<paymentRequestResponseCollection>`, etc.), the real messages exchanged between PG and OOS MUST be wrapped using the message-level security protocol described in the official Octopus specification.
+
+    On the wire, the actual HTTP body is an `<encryptedContent>` document (namespace: http://namespace.oos.online.octopus.com.hk/mls/):
+
+    ```xml
+    <encryptedContent>
+      <iv>base64(IV)</iv>
+      <ciphertext>base64(AES-GCM(signedContent))</ciphertext>
+      <authenticationTag>base64(tag)</authenticationTag>
+      <encryptedKey keyId="...">base64(RSA-OAEP(sessionKey))</encryptedKey>
+    </encryptedContent>
+    ```
+
+    Where:
+    - `<signedContent>` is another XML document:
+
+    ```xml
+    <signedContent>
+      <content>base64(plaintextXml)</content>
+      <signature signerId="..." keyId="...">
+        base64(Sign(plaintextXml))
+      </signature>
+    </signedContent>
+    ```
+
+    - `plaintextXml` is one of the root elements defined in this file, e.g., `<paymentRequestCollection>`, `<paymentRequestResponseCollection>`, `<paymentCancellationResponseCollection>`, `<paymentResult>`, `<paymentResultResponse>`.
+
+    Implementations MUST:
+    1. Construct the plaintext XML as per the schemas below.
+    2. Wrap it inside `<signedContent>` and then `<encryptedContent>`.
+    3. Use RSA-OAEP for encrypting the AES session key and AES-GCM for encrypting the signedContent, exactly as per the Octopus spec.
+    4. Reverse the process when receiving responses.
+
+    This OpenAPI document deliberately omits the `<signedContent>` / `<encryptedContent>` wrapper from individual operations to make the business payloads easier to read and map to application objects. TLS, client certificate authentication and message-level security MUST still be implemented according to the original specification.
+servers:
+  - url: https://{domain}:7443
+    description: Octopus OOS Web API endpoint (testing).
+    variables:
+      domain:
+        description: Environment-specific OOS domain name (testing).
+        default: integration.online.octopus.com.hk
+paths:
+  /webapi-restricted/payment/request/:
+    post:
+      summary: Payment Request Creation
+      description: |
+        Create one or more Octopus payment requests.
+
+        The logical request body is a `paymentRequestCollection` document.
+        On the wire, it MUST be wrapped in the signed + encrypted `<encryptedContent>` envelope as described in the top-level notes.
+
+        For each payment request, OOS will later submit a `paymentResult` callback to the `returnUrl` specified in that request.
+      operationId: createPaymentRequest
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestCollection'
+            examples:
+              singleRequest:
+                summary: Single HKD payment request
+                value: "<paymentRequestCollection xmlns=\"http://namespace.oos.online.octopus.com.hk/transaction/\" documentTime=\"2019-01-31T09:56:56.123+08:00\">\n  <paymentRequest>\n    <gatewayId>196914</gatewayId>\n    <gatewayRef>20190131095653456b22</gatewayRef>\n    <amount>1000</amount>\n    <businessDate>2019-01-31+08:00</businessDate>\n    <currency code=\"HKD\">\n      <exchangeRate>1.00000</exchangeRate>\n      <localAmount>100.00000</localAmount>\n    </currency>\n    <returnUrl>https://payment.example.octopus.com.hk/result</returnUrl>\n    <lang>EN</lang>\n  </paymentRequest>\n</paymentRequestCollection>\n"
+          text/xml:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestCollection'
+      responses:
+        '200':
+          description: |
+            Request decrypted, verified and validated.
+
+            Logical response body is a `paymentRequestResponseCollection` document.
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PaymentRequestResponseCollection'
+              examples:
+                success:
+                  summary: Successful payment request creation
+                  value: "<paymentRequestResponseCollection xmlns=\"http://namespace.oos.online.octopus.com.hk/transaction/\" documentTime=\"2019-01-31T09:56:56.469+08:00\">\n  <paymentRequestResponse>\n    <gatewayId>196914</gatewayId>\n    <gatewayRef>20190131095653456b22</gatewayRef>\n    <status code=\"OK\"></status>\n    <token>4fd1e5b7-3f22-4f6a-9ad8-977199d63c1a</token>\n    <landingUrl>https://web.test.online.octopus.com.hk/payment/landing?token=4fd1e5b7-3f22-4f6a-9ad8-977199d63c1a</landingUrl>\n    <octopusUri>octopus://payment?token=4fd1e5b7-3f22-4f6a-9ad8-977199d63c1a</octopusUri>\n    <ticket>AAFLqid+argtac9qpzV737To4o10wHNfTvTe1KJI5dRJbz1Xz8rkCyInV1NsLcj6dKM=</ticket>\n  </paymentRequestResponse>\n</paymentRequestResponseCollection>\n"
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/PaymentRequestResponseCollection'
+        '400':
+          description: |
+            Bad request – e.g.
+            - wrong signerId
+            - request decryption fails
+            - signature is wrong
+            - encryption or signature keyId is wrong
+            - XML validation fails
+            - documentTime differs from server time significantly (e.g. > 30s)
+        '415':
+          description: Unsupported media type – Content-Type is not application/xml or text/xml.
+        '500':
+          description: Server error – generic internal error on OOS.
+        '503':
+          description: |
+            Service temporarily unavailable.
+
+            An estimated resumption time may be provided in the Retry-After response header.
+          headers:
+            Retry-After:
+              description: Optional hint when the service is expected to resume.
+              schema:
+                type: string
+  /webapi-restricted/payment/enquiry/:
+    post:
+      summary: Payment Request Enquiry
+      description: |
+        Enquire the status of one or more existing Octopus payment requests.
+
+        The logical request body is a `paymentEnquiryCollection` document.
+        On the wire, it MUST be wrapped in the signed + encrypted `<encryptedContent>` envelope as described in the top-level notes.
+      operationId: enquirePaymentStatus
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/PaymentEnquiryCollection'
+            examples:
+              singleEnquiry:
+                summary: Enquiry for one payment request
+                value: "<paymentEnquiryCollection xmlns=\"http://namespace.oos.online.octopus.com.hk/transaction/\" documentTime=\"2019-01-31T09:56:56.909+08:00\">\n  <paymentEnquiry>\n    <gatewayId>196914</gatewayId>\n    <gatewayRef>20190131095653456b22</gatewayRef>\n  </paymentEnquiry>\n</paymentEnquiryCollection>\n"
+          text/xml:
+            schema:
+              $ref: '#/components/schemas/PaymentEnquiryCollection'
+      responses:
+        '200':
+          description: |
+            Request decrypted, verified and validated.
+
+            Logical response body is a `paymentEnquiryResponseCollection` document.
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PaymentEnquiryResponseCollection'
+              examples:
+                success:
+                  summary: Payment enquiry showing successful transaction
+                  value: "<paymentEnquiryResponseCollection xmlns=\"http://namespace.oos.online.octopus.com.hk/transaction/\" documentTime=\"2019-01-31T09:56:57.214+08:00\">\n  <paymentEnquiryResponse>\n    <gatewayId>196914</gatewayId>\n    <gatewayRef>20190131095653456b22</gatewayRef>\n    <status code=\"SUCCESS\"></status>\n    <receiptId>2019013110260411797</receiptId>\n    <amount>1000</amount>\n    <transactionTime>2019-01-31T10:26:04.000+08:00</transactionTime>\n    <means>CARD</means>\n  </paymentEnquiryResponse>\n</paymentEnquiryResponseCollection>\n"
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/PaymentEnquiryResponseCollection'
+        '400':
+          description: |
+            Bad request – same reasons as Payment Request Creation:
+            - wrong signerId
+            - request decryption fails
+            - signature is wrong
+            - encryption or signature keyId is wrong
+            - XML validation fails
+            - documentTime differs from server time significantly (e.g. > 30s)
+        '415':
+          description: Unsupported media type – Content-Type is not application/xml or text/xml.
+        '500':
+          description: Server error – e.g. the payment request being enquired cannot be found.
+        '503':
+          description: |
+            Service temporarily unavailable.
+
+            An estimated resumption time may be provided in the Retry-After response header.
+          headers:
+            Retry-After:
+              description: Optional hint when the service is expected to resume.
+              schema:
+                type: string
+  /webapi-restricted/payment/cancellation/:
+    post:
+      summary: Payment Request Cancellation
+      description: |
+        Cancel one or more existing Octopus payment requests.
+
+        The logical request body is a `paymentCancellationCollection` document.
+        On the wire, it MUST be wrapped in the signed + encrypted `<encryptedContent>` envelope as described in the top-level notes.
+      operationId: cancelPaymentRequest
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/PaymentCancellationCollection'
+            examples:
+              singleCancellation:
+                summary: Cancel one pending payment request
+                value: "<paymentCancellationCollection xmlns=\"http://namespace.oos.online.octopus.com.hk/transaction/\" documentTime=\"2019-01-31T09:56:57.450+08:00\">\n  <paymentCancellation>\n    <gatewayId>196914</gatewayId>\n    <gatewayRef>20190131095653456b22</gatewayRef>\n  </paymentCancellation>\n</paymentCancellationCollection>\n"
+          text/xml:
+            schema:
+              $ref: '#/components/schemas/PaymentCancellationCollection'
+      responses:
+        '200':
+          description: |
+            Request decrypted, verified and validated.
+
+            Logical response body is a `paymentCancellationResponseCollection` document.
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PaymentCancellationResponseCollection'
+              examples:
+                success:
+                  summary: Cancellation accepted
+                  value: "<paymentCancellationResponseCollection xmlns=\"http://namespace.oos.online.octopus.com.hk/transaction/\" documentTime=\"2019-01-31T09:56:57.780+08:00\">\n  <paymentCancellationResponse>\n    <gatewayId>196914</gatewayId>\n    <gatewayRef>20190131095653456b22</gatewayRef>\n    <status code=\"OK\"></status>\n  </paymentCancellationResponse>\n</paymentCancellationResponseCollection>\n"
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/PaymentCancellationResponseCollection'
+        '400':
+          description: |
+            Bad request – same reasons as Payment Request Creation:
+            - wrong signerId
+            - request decryption fails
+            - signature is wrong
+            - encryption or signature keyId is wrong
+            - XML validation fails
+            - documentTime differs from server time significantly (e.g. > 30s)
+        '409':
+          description: |
+            Conflict – payment cannot be cancelled because it is already timed out
+            or card operation is in progress.
+        '415':
+          description: Unsupported media type – Content-Type is not application/xml or text/xml.
+        '500':
+          description: Server error – e.g. the payment request being cancelled cannot be found.
+        '503':
+          description: |
+            Service temporarily unavailable.
+
+            An estimated resumption time may be provided in the Retry-After response header.
+          headers:
+            Retry-After:
+              description: Optional hint when the service is expected to resume.
+              schema:
+                type: string
+components:
+  schemas:
+    Status:
+      type: object
+      description: |
+        Status element with a required `code` attribute and optional free-text content.
+
+        The set of valid values for `code` depends on context (request/enquiry/cancellation/result) and is defined in the Octopus specification.
+      xml:
+        name: status
+      properties:
+        code:
+          type: string
+          description: Status code (context-specific).
+          xml:
+            attribute: true
+          examples:
+            - OK
+      additionalProperties: false
+    Currency:
+      type: object
+      description: Currency information with ISO 4217 code, exchange rate and local amount.
+      xml:
+        name: currency
+      properties:
+        code:
+          type: string
+          description: ISO 4217 currency code (e.g. HKD, CNY, USD).
+          xml:
+            attribute: true
+          examples:
+            - HKD
+        exchangeRate:
+          type: number
+          description: Exchange rate from the specified currency to HKD (max 5 d.p.).
+          examples:
+            - 1.0
+        localAmount:
+          type: number
+          description: Amount in the specified currency, without handling fee (max 5 d.p.).
+          examples:
+            - 100.0
+      required:
+        - code
+        - exchangeRate
+        - localAmount
+      additionalProperties: false
+    Means:
+      type: string
+      description: Payment means of a completed transaction.
+      enum:
+        - CARD
+        - ACCOUNT
+      examples:
+        - CARD
+    Lang:
+      type: string
+      description: Language hint to OOS for the landing page. If omitted, EN is assumed.
+      enum:
+        - EN
+        - TC
+        - SC
+      examples:
+        - EN
+    PaymentRequestCollection:
+      type: object
+      description: |
+        Root element for payment request creation.
+
+        Contains one or more `<paymentRequest>` elements and a required `documentTime` attribute.
+      xml:
+        name: paymentRequestCollection
+        namespace: http://namespace.oos.online.octopus.com.hk/transaction/
+      properties:
+        documentTime:
+          type: string
+          format: date-time
+          description: Time of creation of the XML document (xs:dateTimeStamp).
+          xml:
+            attribute: true
+          examples:
+            - '2019-01-31T09:56:56.123+08:00'
+        paymentRequest:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/PaymentRequest'
+          description: One or more payment requests.
+          xml:
+            name: paymentRequest
+      required:
+        - documentTime
+        - paymentRequest
+      additionalProperties: false
+    PaymentRequest:
+      type: object
+      description: Single payment request item.
+      xml:
+        name: paymentRequest
+      properties:
+        gatewayId:
+          type: integer
+          format: int64
+          description: Gateway (SP Group) identifier (xs:unsignedInt).
+          examples:
+            - 196914
+        gatewayRef:
+          type: string
+          description: Gateway reference for this payment request (xs:token).
+          examples:
+            - 20190131095653456b22
+        merchantId:
+          type: integer
+          format: int64
+          description: |
+            Merchant (SP) identifier.
+            If omitted, it will default to the same value as `gatewayId`.
+          examples:
+            - 196914
+        amount:
+          type: integer
+          format: int64
+          description: Payment amount with handling fee in HKD in 10 cents (xs:unsignedInt).
+          examples:
+            - 1000
+        returnUrl:
+          type: string
+          description: HTTPS URL for result submission (see Payment Result Submission).
+          format: uri
+          examples:
+            - https://payment.example.octopus.com.hk/result
+        timeout:
+          type: integer
+          format: int64
+          description: |
+            Number of seconds after which the request can no longer be processed.
+            Must not co-exist with `expiryTime`.
+          examples:
+            - 1800
+        expiryTime:
+          type: string
+          format: date-time
+          description: |
+            Absolute time after which the request can no longer be processed (xs:dateTimeStamp).
+            Must not co-exist with `timeout`.
+          examples:
+            - '2019-01-31T10:26:04.000+08:00'
+        businessDate:
+          type: string
+          description: |
+            Report date in which this request should be included, in Hong Kong time (UTC+08:00).
+            Pattern: `\d{4}-\d{2}-\d{2}(?:\+08:00)?`.
+          examples:
+            - 2019-01-31+08:00
+        requestDescription:
+          type: array
+          description: |
+            Optional human-readable descriptions of the payment request in one or more languages.
+
+            NOTE: In the original XSD this is a simple-content element with a `default` attribute and text content. Here it is modelled as plain string values for simplicity; default handling is implementation-specific.
+          items:
+            type: string
+          xml:
+            name: requestDescription
+          examples:
+            - 'Online purchase – Order #123456'
+        lang:
+          $ref: '#/components/schemas/Lang'
+        currency:
+          $ref: '#/components/schemas/Currency'
+        locationId:
+          type: integer
+          format: int64
+          description: |
+            Location identifier (shop/branch) for reporting purposes.
+            Must be > 0 and ≤ 65535.
+          examples:
+            - 1001
+        fee:
+          type: integer
+          format: int64
+          description: Handling fee in HKD in 10 cents (xs:unsignedInt).
+          examples:
+            - 0
+        mpos:
+          type: boolean
+          description: |
+            Indicator of mobile POS payment request.
+
+            If omitted, OOS will treat it as a non-mPOS request.
+          examples:
+            - false
+      required:
+        - gatewayId
+        - gatewayRef
+        - amount
+        - returnUrl
+        - businessDate
+      additionalProperties: false
+    PaymentRequestResponseCollection:
+      type: object
+      description: Root element for payment request creation responses.
+      xml:
+        name: paymentRequestResponseCollection
+        namespace: http://namespace.oos.online.octopus.com.hk/transaction/
+      properties:
+        documentTime:
+          type: string
+          format: date-time
+          description: Time of creation of the XML document (xs:dateTimeStamp).
+          xml:
+            attribute: true
+          examples:
+            - '2019-01-31T09:56:56.469+08:00'
+        paymentRequestResponse:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/PaymentRequestResponse'
+          xml:
+            name: paymentRequestResponse
+      required:
+        - documentTime
+        - paymentRequestResponse
+      additionalProperties: false
+    PaymentRequestResponse:
+      type: object
+      description: Response entry for a payment request.
+      xml:
+        name: paymentRequestResponse
+      properties:
+        gatewayId:
+          type: integer
+          format: int64
+          description: Gateway identifier.
+          examples:
+            - 196914
+        gatewayRef:
+          type: string
+          description: Gateway reference (matches the request).
+          examples:
+            - 20190131095653456b22
+        status:
+          $ref: '#/components/schemas/Status'
+        token:
+          type: string
+          description: Token representing the payment request (xs:token).
+          examples:
+            - 4fd1e5b7-3f22-4f6a-9ad8-977199d63c1a
+        landingUrl:
+          type: string
+          format: uri
+          description: Landing page URL for the Octopus payment (web to web / web to app).
+          examples:
+            - https://web.test.online.octopus.com.hk/payment/landing?token=4fd1e5b7-3f22-4f6a-9ad8-977199d63c1a
+        octopusUri:
+          type: string
+          format: uri
+          description: Custom URI to invoke Octopus App.
+          examples:
+            - octopus://payment?token=4fd1e5b7-3f22-4f6a-9ad8-977199d63c1a
+        ticket:
+          type: string
+          description: |
+            Ticket for mobile POS payment request.
+
+            Present only when the merchant account is mPOS-enabled and the `mpos` indicator in the request is true.
+          examples:
+            - AAFLqid+argtac9qpzV737To4o10wHNfTvTe1KJI5dRJbz1Xz8rkCyInV1NsLcj6dKM=
+      required:
+        - gatewayId
+        - gatewayRef
+        - status
+        - token
+        - landingUrl
+        - octopusUri
+      additionalProperties: false
+    PaymentEnquiryCollection:
+      type: object
+      description: Root element for payment status enquiry requests.
+      xml:
+        name: paymentEnquiryCollection
+        namespace: http://namespace.oos.online.octopus.com.hk/transaction/
+      properties:
+        documentTime:
+          type: string
+          format: date-time
+          description: Time of creation of the XML document (xs:dateTimeStamp).
+          xml:
+            attribute: true
+          examples:
+            - '2019-01-31T09:56:56.909+08:00'
+        paymentEnquiry:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/PaymentEnquiry'
+          xml:
+            name: paymentEnquiry
+      required:
+        - documentTime
+        - paymentEnquiry
+      additionalProperties: false
+    PaymentEnquiry:
+      type: object
+      description: Single payment enquiry item.
+      xml:
+        name: paymentEnquiry
+      properties:
+        gatewayId:
+          type: integer
+          format: int64
+          description: Gateway identifier.
+          examples:
+            - 196914
+        gatewayRef:
+          type: string
+          description: Gateway reference of the payment request being enquired.
+          examples:
+            - 20190131095653456b22
+      required:
+        - gatewayId
+        - gatewayRef
+      additionalProperties: false
+    PaymentEnquiryResponseCollection:
+      type: object
+      description: Root element for payment status enquiry responses.
+      xml:
+        name: paymentEnquiryResponseCollection
+        namespace: http://namespace.oos.online.octopus.com.hk/transaction/
+      properties:
+        documentTime:
+          type: string
+          format: date-time
+          description: Time of creation of the XML document (xs:dateTimeStamp).
+          xml:
+            attribute: true
+          examples:
+            - '2019-01-31T09:56:57.214+08:00'
+        paymentEnquiryResponse:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/PaymentEnquiryResponse'
+          xml:
+            name: paymentEnquiryResponse
+      required:
+        - documentTime
+        - paymentEnquiryResponse
+      additionalProperties: false
+    PaymentEnquiryResponse:
+      type: object
+      description: Status information for a payment request.
+      xml:
+        name: paymentEnquiryResponse
+      properties:
+        gatewayId:
+          type: integer
+          format: int64
+          description: Gateway identifier.
+          examples:
+            - 196914
+        gatewayRef:
+          type: string
+          description: Gateway reference of the payment request.
+          examples:
+            - 20190131095653456b22
+        status:
+          $ref: '#/components/schemas/Status'
+        receiptId:
+          type: string
+          description: |
+            Octopus receipt id (OOS reference number).
+            Present only if the transaction is successful.
+          examples:
+            - '2019013110260411797'
+        cardId:
+          type: integer
+          format: int64
+          description: |
+            Identifier of the Octopus medium used to complete the transaction.
+            Whether this is returned is subject to OCL approval.
+          examples:
+            - 1234567890123
+        amount:
+          type: integer
+          format: int64
+          description: |
+            Payment amount with handling fee in HKD in 10 cents.
+            Present only if the transaction is successful.
+          examples:
+            - 1000
+        transactionTime:
+          type: string
+          format: date-time
+          description: |
+            Transaction completion time (xs:dateTimeStamp).
+            Present only if the transaction is successful.
+          examples:
+            - '2019-01-31T10:26:04.000+08:00'
+        means:
+          $ref: '#/components/schemas/Means'
+        remainingValue:
+          type: integer
+          format: int64
+          description: |
+            Remaining Octopus value after payment in HKD in 10 cents.
+            Present only for successful mPOS transactions paid by Card.
+          examples:
+            - 5000
+        oldCardId:
+          type: integer
+          format: int64
+          description: |
+            Previous Octopus card id related to the card used in this transaction,
+            subject to OCL approval and existence.
+          examples:
+            - 9876543210123
+      required:
+        - gatewayId
+        - gatewayRef
+        - status
+      additionalProperties: false
+    PaymentCancellationCollection:
+      type: object
+      description: Root element for payment cancellation requests.
+      xml:
+        name: paymentCancellationCollection
+        namespace: http://namespace.oos.online.octopus.com.hk/transaction/
+      properties:
+        documentTime:
+          type: string
+          format: date-time
+          description: Time of creation of the XML document (xs:dateTimeStamp).
+          xml:
+            attribute: true
+          examples:
+            - '2019-01-31T09:56:57.450+08:00'
+        paymentCancellation:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/PaymentCancellation'
+          xml:
+            name: paymentCancellation
+      required:
+        - documentTime
+        - paymentCancellation
+      additionalProperties: false
+    PaymentCancellation:
+      type: object
+      description: Single payment cancellation item.
+      xml:
+        name: paymentCancellation
+      properties:
+        gatewayId:
+          type: integer
+          format: int64
+          description: Gateway identifier.
+          examples:
+            - 196914
+        gatewayRef:
+          type: string
+          description: Gateway reference of the payment request to be cancelled.
+          examples:
+            - 20190131095653456b22
+      required:
+        - gatewayId
+        - gatewayRef
+      additionalProperties: false
+    PaymentCancellationResponseCollection:
+      type: object
+      description: Root element for payment cancellation responses.
+      xml:
+        name: paymentCancellationResponseCollection
+        namespace: http://namespace.oos.online.octopus.com.hk/transaction/
+      properties:
+        documentTime:
+          type: string
+          format: date-time
+          description: Time of creation of the XML document (xs:dateTimeStamp).
+          xml:
+            attribute: true
+          examples:
+            - '2019-01-31T09:56:57.780+08:00'
+        paymentCancellationResponse:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/PaymentCancellationResponse'
+          xml:
+            name: paymentCancellationResponse
+      required:
+        - documentTime
+        - paymentCancellationResponse
+      additionalProperties: false
+    PaymentCancellationResponse:
+      type: object
+      description: Result of a payment cancellation request.
+      xml:
+        name: paymentCancellationResponse
+      properties:
+        gatewayId:
+          type: integer
+          format: int64
+          description: Gateway identifier.
+          examples:
+            - 196914
+        gatewayRef:
+          type: string
+          description: Gateway reference of the payment request concerned.
+          examples:
+            - 20190131095653456b22
+        status:
+          $ref: '#/components/schemas/Status'
+      required:
+        - gatewayId
+        - gatewayRef
+        - status
+      additionalProperties: false
+    PaymentResult:
+      type: object
+      description: |
+        Payment result submitted by OOS to the payment gateway (PG).
+
+        In XML this is the `<paymentResult>` root element.
+      xml:
+        name: paymentResult
+        namespace: http://namespace.oos.online.octopus.com.hk/transaction/
+      properties:
+        documentTime:
+          type: string
+          format: date-time
+          description: Time of creation of the XML document.
+          xml:
+            attribute: true
+          examples:
+            - '2019-01-31T10:26:05.010+08:00'
+        gatewayId:
+          type: integer
+          format: int64
+          examples:
+            - 196914
+        gatewayRef:
+          type: string
+          examples:
+            - 20190131095653456b22
+        status:
+          $ref: '#/components/schemas/Status'
+        receiptId:
+          type: string
+          description: |
+            Octopus receipt id (OOS reference number).
+            Present only if transaction is successful.
+          examples:
+            - '2019013110260411797'
+        cardId:
+          type: integer
+          format: int64
+          description: |
+            Identifier of the Octopus medium that completed the transaction (if allowed by OCL).
+          examples:
+            - 1234567890123
+        amount:
+          type: integer
+          format: int64
+          description: |
+            Payment amount with handling fee in HKD in 10 cents.
+            Present only if transaction successful.
+          examples:
+            - 1000
+        transactionTime:
+          type: string
+          format: date-time
+          description: |
+            Transaction completion time (xs:dateTimeStamp).
+            Present only if transaction successful.
+          examples:
+            - '2019-01-31T10:26:04.000+08:00'
+        means:
+          $ref: '#/components/schemas/Means'
+        remainingValue:
+          type: integer
+          format: int64
+          description: |
+            Remaining Octopus value after payment in HKD in 10 cents.
+            Present only for successful mPOS transactions paid by Card.
+          examples:
+            - 5000
+        oldCardId:
+          type: integer
+          format: int64
+          description: Previous Octopus card id related to the card used in this transaction.
+          examples:
+            - 9876543210123
+      required:
+        - documentTime
+        - gatewayId
+        - gatewayRef
+        - status
+      additionalProperties: false
+    PaymentResultResponse:
+      type: object
+      description: |
+        Response from payment gateway to OOS after processing a payment result.
+
+        In XML this is the `<paymentResultResponse>` root element.
+      xml:
+        name: paymentResultResponse
+        namespace: http://namespace.oos.online.octopus.com.hk/transaction/
+      properties:
+        documentTime:
+          type: string
+          format: date-time
+          xml:
+            attribute: true
+          examples:
+            - '2019-01-31T10:26:05.322+08:00'
+        gatewayId:
+          type: integer
+          format: int64
+          examples:
+            - 196914
+        gatewayRef:
+          type: string
+          examples:
+            - 20190131095653456b22
+        resultUrl:
+          type: string
+          format: uri
+          description: |
+            Optional URL of the result page that should be displayed to the customer when the payment request is finalized (success / cancelled / timeout).
+          examples:
+            - https://payment.example.octopus.com.hk/result?pgref=20190131095653456b22
+      required:
+        - documentTime
+        - gatewayId
+        - gatewayRef
+      additionalProperties: false
+webhooks:
+  paymentResultSubmission:
+    post:
+      summary: Payment Result Submission (webhook from OOS to payment gateway)
+      description: |
+        Webhook invoked by Octopus Online System (OOS) to submit the result of a finalized payment request to the payment gateway.
+
+        The actual target URL is the value of `<returnUrl>` supplied in the original `paymentRequest`. For documentation purposes, this webhook is named `paymentResultSubmission`.
+
+        Request/response bodies are logical (plaintext) XML payloads. On the wire, they MUST be wrapped in the signed + encrypted `<encryptedContent>` envelope described in the top-level specification notes.
+      operationId: paymentResultSubmission
+      servers:
+        - url: https://payment.example.octopus.com.hk
+          description: Example payment gateway host that receives the webhook.
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/PaymentResult'
+            examples:
+              success:
+                summary: Successful payment result
+                value: "<paymentResult xmlns=\"http://namespace.oos.online.octopus.com.hk/transaction/\" documentTime=\"2019-01-31T10:26:05.010+08:00\">\n  <amount>1000</amount>\n  <gatewayId>196914</gatewayId>\n  <gatewayRef>20190131095653456b22</gatewayRef>\n  <receiptId>2019013110260411797</receiptId>\n  <status code=\"SUCCESS\"></status>\n  <transactionTime>2019-01-31T10:26:04.000+08:00</transactionTime>\n  <means>CARD</means>\n</paymentResult>"
+          text/xml:
+            schema:
+              $ref: '#/components/schemas/PaymentResult'
+      responses:
+        '200':
+          description: |
+            Payment gateway has successfully processed the payment result.
+
+            Logical response body is a `paymentResultResponse` document.
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PaymentResultResponse'
+              examples:
+                redirectToResultPage:
+                  summary: Redirect customer to PG result page
+                  value: "<paymentResultResponse xmlns=\"http://namespace.oos.online.octopus.com.hk/transaction/\" documentTime=\"2019-01-31T10:26:05.322+08:00\">\n  <gatewayId>196914</gatewayId>\n  <gatewayRef>20190131095653456b22</gatewayRef>\n  <resultUrl>https://payment.example.octopus.com.hk/result?pgref=20190131095653456b22</resultUrl>\n</paymentResultResponse>"
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/PaymentResultResponse'
+        '503':
+          description: |
+            Temporary failure at payment gateway.
+
+            OOS will retry the result submission after a short interval.
+        '500':
+          description: Any other error. OOS marks the result submission as failed and recommends relying on the Enquiry API plus your own notification mechanism.
