@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Omni Collect Payment Page Demo for US Market v.20260820 - Dahlia</title>
+  <!-- Stripe.js Dahlia: aligned with API version 2026-07-29.dahlia -->
+  <script src="https://js.stripe.com/dahlia/stripe.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      background: #fdfdfd;
+    }
+    h1 {
+      margin-bottom: 1em;
+    }
+    /* Tab styles */
+    .tab {
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background-color: #f1f1f1;
+      margin-bottom: 20px;
+    }
+    .tab button {
+      background-color: inherit;
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      transition: 0.3s;
+    }
+    .tab button:hover {
+      background-color: #ddd;
+    }
+    .tab button.active {
+      background-color: #ccc;
+    }
+    .tabcontent {
+      display: none;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-top: none;
+      margin-bottom: 20px;
+      background: #fff;
+    }
+    label {
+      display: inline-block;
+      width: 150px;
+      font-weight: bold;
+      font-size: 90%;
+    }
+    input[type="text"] {
+      width: 350px;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+    button {
+      margin-left: 10px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ccc;
+      border-top: 2px solid #333;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    .hidden {
+      display: none;
+    }
+    .payment-section {
+      display: none;
+      margin-top: 20px;
+      border: 1px solid #eee;
+      padding: 15px;
+    }
+    .card-element {
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 4px;
+      width: 300px;
+      margin-bottom: 10px;
+    }
+    .message {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .message.error {
+      color: #c00;
+      font-weight: bold;
+    }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-top: 20px;
+      margin-bottom: 5px;
+    }
+    .small-notice {
+      font-style: italic;
+      color: #666;
+      margin-bottom: 10px;
+      font-size: 80%;
+    }
+    #custom-checkout-form {
+      margin-top: 10px;
+    }
+    #custom-checkout-form button {
+      margin-top: 10px;
+    }
+    #custom-checkout-mount {
+      border: 1px solid #ccc;
+      min-height: 300px;
+      margin-top: 15px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Omni Collect Payment Page Demo for US Market v.20260820 - Dahlia</h1>
+
+<div style="margin:0 0 18px 0;padding:10px 12px;border:1px solid #ccc;background:#fafafa;font-size:90%;">
+  <strong>Target:</strong> Stripe API <code>2026-07-29.dahlia</code>.
+  Create the Checkout Session with <code>ui_mode=embedded</code> for Embedded Checkout
+  or <code>ui_mode=elements</code> for Stripe Elements.
+  For local testing, serve this page through <code>http://localhost</code> rather than <code>file://</code>.
+</div>
+
+<!-- ================= Tab Navigation ================= -->
+<div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'Embedded')">Payment Checkout (ui_mode: embedded)</button>
+  <button class="tablinks" onclick="openTab(event, 'Elements')">Payment Checkout (ui_mode: elements)</button>
+  <button class="tablinks" onclick="openTab(event, 'ElementsCPM')">Stripe Elements (with Custom Payment Method)</button>
+</div>
+
+<!-- ======================== TAB: Embedded ======================== -->
+<div id="Embedded" class="tabcontent">
+  <h2>Making Payment via Embedded Checkout</h2>
+  <div class="section-title">Step 1: Enter Publishable Key & Client Secret</div>
+  <div class="small-notice">
+    Use the publishable key from the same Stripe account that created the Checkout Session.
+    The Client Secret must come from a Checkout Session created with <code>ui_mode=embedded</code>.
+  </div>
+
+  <div>
+    <label>Publishable Key:</label>
+    <input type="text" id="embeddedPubKey" placeholder="pk_test_..." />
+  </div>
+  <div>
+    <label>Client Secret:</label>
+    <input type="text" id="embeddedClientSecret" placeholder="cs_test_..._secret_..." />
+  </div>
+
+  <button id="embeddedActivateBtn">Activate Embedded Checkout</button>
+  <div id="embeddedMessage" class="message"></div>
+
+  <div id="embeddedSection" class="payment-section">
+    <div class="section-title">Step 2: Embedded Checkout</div>
+    <div id="embedded-checkout"></div>
+  </div>
+</div>
+
+<!-- ======================== TAB: Elements ======================== -->
+<div id="Elements" class="tabcontent">
+  <h2>Making Payment via Stripe Elements</h2>
+  <div class="section-title">Step 1: Enter Publishable Key & Client Secret</div>
+  <div class="small-notice">
+    Use the publishable key from the same Stripe account that created the Checkout Session.
+    The Client Secret must come from a Checkout Session created with <code>ui_mode=elements</code>.
+  </div>
+
+  <div>
+    <label>Publishable Key:</label>
+    <input type="text" id="elementsPubKey" placeholder="pk_test_..." />
+  </div>
+  <div>
+    <label>Client Secret:</label>
+    <input type="text" id="elementsClientSecret" placeholder="cs_test_..._secret_..." />
+  </div>
+
+  <button id="elementsActivateBtn">Activate Elements Checkout</button>
+  <div id="elementsMessage" class="message"></div>
+
+  <div id="elementsSection" class="payment-section">
+    <div class="section-title">Step 2: Payment Element</div>
+    <div id="elements-checkout-mount"></div>
+
+    <form id="elements-checkout-form">
+      <div style="margin-top:15px;">
+        <label>Email (optional):</label>
+        <input type="text" id="elementsEmail" placeholder="you@example.com"/>
+      </div>
+      <div id="elementsEmailErrors" style="color:red;"></div>
+      <button id="elementsSubmitBtn" type="submit">
+        <span id="elementsButtonText">Pay Now</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+
+<!-- ======================== TAB: Stripe Elements + CPM ======================== -->
+<div id="ElementsCPM" class="tabcontent">
+  <h2>Stripe Elements with Custom Payment Method</h2>
+
+  <!-- Stripe / CPM screen -->
+  <div id="cpmStripeScreen">
+    <div class="section-title">Step 1: Enter Stripe Details</div>
+    <div class="small-notice">
+      This tab uses the Payment Intents API + Stripe Payment Element.
+      The Client Secret must come from the Stripe PaymentIntent created for this payment.
+      The Custom Payment Method ID is the <code>cpmt_...</code> ID created in Stripe Dashboard.
+    </div>
+
+    <div>
+      <label>Publishable Key:</label>
+      <input type="text" id="cpmPubKey" placeholder="pk_test_..." />
+    </div>
+
+    <div>
+      <label>Client Secret:</label>
+      <input type="text" id="cpmClientSecret" placeholder="pi_..._secret_..." />
+    </div>
+
+    <div>
+      <label>CPM ID:</label>
+      <input type="text" id="cpmPaymentMethodId"
+             value="cpmt_1U6YvcFxDsqTUrXaWTwpYX2g"
+             placeholder="cpmt_..." />
+    </div>
+
+    <button id="cpmActivateBtn">Activate Stripe Elements</button>
+    <div id="cpmMessage" class="message"></div>
+
+    <div id="cpmSection" class="payment-section">
+      <div class="section-title">Step 2: Select Payment Method</div>
+      <div class="small-notice">
+        Select <strong>POC ACH</strong>, then click Continue / Pay.
+        The demo uses Stripe <code>elements.submit()</code> to identify the selected
+        Custom Payment Method and hand the flow from Stripe to Omni Collect.
+      </div>
+
+      <div id="cpm-payment-element"></div>
+
+      <div style="margin-top:18px;">
+        <button id="cpmContinueBtn" type="button">Continue / Pay</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simulated Omni/Plaid hand-off screen -->
+  <div id="cpmPlaidScreen" style="display:none;">
+    <h2>HSBC ACH - Omni Collect / Plaid Handoff</h2>
+
+    <div style="padding:12px 14px;border:1px solid #9bb9d3;background:#eef6fc;margin-bottom:18px;">
+      <strong>POC simulation only.</strong>
+      Stripe processing has been left because the customer selected the Custom Payment Method.
+      No real Plaid API call or ACH transaction is made by this page.
+    </div>
+
+    <div class="section-title">Step 3: Omni Collect initiates Plaid</div>
+    <div class="small-notice">
+      In the real integration, the frontend calls Omni Collect.
+      Omni Collect then wraps the Plaid backend APIs.
+    </div>
+
+    <div id="pseudoPlaidApiPanel"
+         style="border:1px solid #ccc;background:#fafafa;padding:16px;margin-top:12px;">
+      <div><strong>Selected payment option:</strong> POC ACH</div>
+      <div style="margin-top:8px;"><strong>Processing handoff:</strong> Stripe → Omni Collect → Plaid</div>
+
+      <button id="simulatePlaidBackendBtn" type="button" style="margin-top:16px;">
+        Make Backend Plaid API Call
+      </button>
+
+      <div id="pseudoPlaidApiResult" style="margin-top:16px;"></div>
+
+      <button id="renderPlaidUiBtn" type="button" style="margin-top:16px;display:none;">
+        Use link_token to Render Plaid Transfer UI
+      </button>
+    </div>
+
+    <div style="margin-top:20px;">
+      <button id="backToStripeBtn" type="button">Back to Stripe Elements</button>
+    </div>
+  </div>
+
+  <!-- Simulated Plaid Transfer UI overlay -->
+  <div id="pseudoPlaidOverlay"
+       style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;
+              background:rgba(0,0,0,0.55);">
+    <div style="width:min(520px,88%);margin:7vh auto;background:#fff;border-radius:10px;
+                padding:24px;box-shadow:0 8px 30px rgba(0,0,0,0.35);">
+      <div style="font-size:24px;font-weight:bold;margin-bottom:6px;">Plaid Transfer UI</div>
+      <div style="font-size:13px;color:#666;margin-bottom:18px;">
+        Simulation of <code>Plaid.create({ token: link_token })</code> + <code>handler.open()</code>
+      </div>
+
+      <div style="padding:12px;border:1px solid #ddd;border-radius:6px;margin-bottom:12px;">
+        <strong>Connect your bank</strong><br/>
+        <span style="color:#666;">Choose and authenticate your US bank account.</span>
+      </div>
+
+      <div style="padding:12px;border:1px solid #ddd;border-radius:6px;margin-bottom:12px;">
+        <strong>Review ACH payment</strong><br/>
+        Amount: <strong>$20.00 USD</strong><br/>
+        Payment method: HSBC ACH
+      </div>
+
+      <div style="padding:12px;border:1px solid #ddd;border-radius:6px;margin-bottom:18px;">
+        <strong>Authorize transfer</strong><br/>
+        <span style="color:#666;">Customer authorizes the ACH debit through Plaid Transfer UI.</span>
+      </div>
+
+      <button id="pseudoPlaidAuthorizeBtn" type="button">Simulate ACH Authorization</button>
+      <button id="pseudoPlaidCloseBtn" type="button">Close</button>
+
+      <div id="pseudoPlaidFinalResult" class="message" style="margin-top:18px;"></div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/************************************************************
+ * Tab UI
+ ************************************************************/
+function openTab(evt, tabName) {
+  const tabcontent = document.getElementsByClassName("tabcontent");
+  for (let i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  const tablinks = document.getElementsByClassName("tablinks");
+  for (let i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+document.getElementById("Embedded").style.display = "block";
+document.getElementsByClassName("tablinks")[0].className += " active";
+
+/************************************************************
+ * Embedded Checkout - Dahlia
+ * Backend Checkout Session: ui_mode=embedded
+ * Frontend: stripe.createEmbeddedCheckoutPage(...)
+ ************************************************************/
+let embeddedStripe;
+let embeddedCheckout;
+
+document.getElementById('embeddedActivateBtn').addEventListener('click', async () => {
+  const pubKey = document.getElementById('embeddedPubKey').value.trim();
+  const clientSecret = document.getElementById('embeddedClientSecret').value.trim();
+  const messageEl = document.getElementById('embeddedMessage');
+
+  messageEl.textContent = "";
+  messageEl.classList.remove('error');
+
+  if (!pubKey || !clientSecret) {
+    messageEl.textContent = "Please enter both Publishable Key and Client Secret.";
+    messageEl.classList.add('error');
+    return;
+  }
+
+  try {
+    // Destroy a previous instance before creating a new one.
+    if (embeddedCheckout) {
+      embeddedCheckout.destroy();
+      embeddedCheckout = null;
+      document.getElementById('embedded-checkout').innerHTML = "";
+    }
+
+    embeddedStripe = Stripe(pubKey);
+
+    embeddedCheckout = await embeddedStripe.createEmbeddedCheckoutPage({
+      clientSecret
+    });
+
+    embeddedCheckout.mount('#embedded-checkout');
+    document.getElementById('embeddedSection').style.display = 'block';
+  } catch (err) {
+    messageEl.textContent = "Error initializing Embedded Checkout: " + (err?.message || err);
+    messageEl.classList.add('error');
+    console.error(err);
+  }
+});
+
+/************************************************************
+ * Elements + Checkout Sessions - Dahlia
+ * Backend Checkout Session: ui_mode=elements
+ * Frontend: stripe.initCheckoutElementsSdk(...)
+ ************************************************************/
+let elementsStripe;
+let checkoutElementsSdk;
+let checkoutActions;
+let paymentElement;
+
+document.getElementById('elementsActivateBtn').addEventListener('click', async () => {
+  const pubKey = document.getElementById('elementsPubKey').value.trim();
+  const clientSecret = document.getElementById('elementsClientSecret').value.trim();
+  const messageEl = document.getElementById('elementsMessage');
+
+  messageEl.textContent = "";
+  messageEl.classList.remove('error');
+
+  if (!pubKey || !clientSecret) {
+    messageEl.textContent = "Please enter both Publishable Key and Client Secret.";
+    messageEl.classList.add('error');
+    return;
+  }
+
+  try {
+    // Clear previously mounted UI before re-initializing.
+    document.getElementById('elements-checkout-mount').innerHTML = "";
+    checkoutActions = null;
+    paymentElement = null;
+
+    elementsStripe = Stripe(pubKey);
+
+    const appearance = { theme: 'stripe' };
+
+    // Dahlia: initialise the Checkout Elements SDK synchronously
+    // and pass the Checkout Session client secret directly.
+    checkoutElementsSdk = elementsStripe.initCheckoutElementsSdk({
+      clientSecret,
+      elementsOptions: { appearance }
+    });
+
+    // Dahlia: actions (including getSession/updateEmail/confirm)
+    // are loaded asynchronously.
+    const loadActionsResult = await checkoutElementsSdk.loadActions();
+
+    if (loadActionsResult.type !== 'success') {
+      throw new Error(loadActionsResult.error?.message || "Unable to load Checkout actions.");
+    }
+
+    checkoutActions = loadActionsResult.actions;
+    const session = checkoutActions.getSession();
+    console.log("Checkout Session:", session);
+
+    paymentElement = checkoutElementsSdk.createPaymentElement();
+
+    paymentElement.on('loaderror', (event) => {
+      const msg = event?.error?.message || "Payment Element failed to load.";
+      messageEl.textContent = "Payment Element load error: " + msg;
+      messageEl.classList.add('error');
+      console.error("Payment Element loaderror:", event);
+    });
+
+    paymentElement.mount('#elements-checkout-mount');
+
+    document.getElementById('elementsSection').style.display = 'block';
+
+    if (session?.total?.total?.amount) {
+      document.getElementById('elementsButtonText').textContent =
+        `Pay ${session.total.total.amount}`;
+    } else {
+      document.getElementById('elementsButtonText').textContent = "Pay Now";
+    }
+
+  } catch (err) {
+    messageEl.textContent = "Error initializing Elements Checkout: " + (err?.message || err);
+    messageEl.classList.add('error');
+    console.error(err);
+  }
+});
+
+/************************************************************
+ * Confirm Elements Checkout
+ ************************************************************/
+document.getElementById('elements-checkout-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const messageEl = document.getElementById('elementsMessage');
+  const emailErrorsEl = document.getElementById('elementsEmailErrors');
+  const submitBtn = document.getElementById('elementsSubmitBtn');
+  const email = document.getElementById('elementsEmail').value.trim();
+
+  messageEl.textContent = "";
+  messageEl.classList.remove('error');
+  emailErrorsEl.textContent = "";
+
+  if (!checkoutActions) {
+    messageEl.textContent = "Please activate Elements Checkout first.";
+    messageEl.classList.add('error');
+    return;
+  }
+
+  submitBtn.disabled = true;
+
+  try {
+    // Optional: update the Checkout Session email before confirmation.
+    if (email) {
+      const emailResult = await checkoutActions.updateEmail(email);
+      if (emailResult.type === 'error') {
+        emailErrorsEl.textContent = emailResult.error?.message || "Unable to update email.";
+        return;
+      }
+    }
+
+    // Validate mounted Elements before confirmation.
+    const validationResult = await checkoutActions.validateElements();
+    if (validationResult.type === 'error') {
+      messageEl.textContent =
+        validationResult.error?.message || "Please check the payment details.";
+      messageEl.classList.add('error');
+      return;
+    }
+
+    // Dahlia: confirm is an action returned by loadActions().
+    const confirmResult = await checkoutActions.confirm();
+
+    if (confirmResult.type === 'error') {
+      messageEl.textContent =
+        confirmResult.error?.message || "Payment confirmation failed.";
+      messageEl.classList.add('error');
+      return;
+    }
+
+    // For non-redirect payment methods, confirmation may complete in-page.
+    messageEl.textContent = "Payment confirmed successfully.";
+  } catch (err) {
+    messageEl.textContent = err?.message || String(err);
+    messageEl.classList.add('error');
+    console.error(err);
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+</script>
+
+
+
+<script>
+/************************************************************
+ * Stripe Elements + Custom Payment Method (CPM)
+ *
+ * Separate POC script. Existing Checkout Session tabs and
+ * scripts are not modified.
+ *
+ * Stripe CPM handoff:
+ *   1) Render Payment Element with CPM.
+ *   2) User selects payment method.
+ *   3) Continue / Pay calls elements.submit().
+ *   4) If selectedPaymentMethod == CPM ID, leave Stripe flow
+ *      and show the simulated Omni Collect / Plaid flow.
+ *
+ * Plaid stage:
+ *   Simulation only. No real Plaid credentials or API calls.
+ ************************************************************/
+let cpmStripe;
+let cpmElements;
+let cpmPaymentElement;
+let pseudoTransferIntentId = "";
+let pseudoLinkToken = "";
+let pseudoTransferId = "";
+
+function makePseudoId(prefix) {
+  const randomPart = Math.random().toString(36).substring(2, 12);
+  const timePart = Date.now().toString(36);
+  return `${prefix}_${timePart}${randomPart}`;
+}
+
+function showCpmStripeScreen() {
+  document.getElementById('cpmStripeScreen').style.display = 'block';
+  document.getElementById('cpmPlaidScreen').style.display = 'none';
+}
+
+function showCpmPlaidScreen() {
+  document.getElementById('cpmStripeScreen').style.display = 'none';
+  document.getElementById('cpmPlaidScreen').style.display = 'block';
+}
+
+document.getElementById('cpmActivateBtn').addEventListener('click', async () => {
+  const pubKey = document.getElementById('cpmPubKey').value.trim();
+  const clientSecret = document.getElementById('cpmClientSecret').value.trim();
+  const cpmId = document.getElementById('cpmPaymentMethodId').value.trim();
+  const messageEl = document.getElementById('cpmMessage');
+
+  messageEl.textContent = "";
+  messageEl.classList.remove('error');
+
+  if (!pubKey || !clientSecret || !cpmId) {
+    messageEl.textContent =
+      "Please enter Publishable Key, PaymentIntent Client Secret and CPM ID.";
+    messageEl.classList.add('error');
+    return;
+  }
+
+  try {
+    if (cpmPaymentElement) {
+      cpmPaymentElement.destroy();
+      cpmPaymentElement = null;
+      document.getElementById('cpm-payment-element').innerHTML = "";
+    }
+
+    cpmStripe = Stripe(pubKey);
+
+    cpmElements = cpmStripe.elements({
+      clientSecret,
+      customPaymentMethods: [
+        {
+          id: cpmId,
+          options: {
+            type: 'static',
+            subtitle: 'Pay by ACH'
+          }
+        }
+      ]
+    });
+
+    cpmPaymentElement = cpmElements.create('payment');
+
+    cpmPaymentElement.on('loaderror', (event) => {
+      const msg = event?.error?.message || "Payment Element failed to load.";
+      messageEl.textContent = "Payment Element load error: " + msg;
+      messageEl.classList.add('error');
+      console.error("CPM Payment Element loaderror:", event);
+    });
+
+    cpmPaymentElement.mount('#cpm-payment-element');
+    document.getElementById('cpmSection').style.display = 'block';
+
+    messageEl.textContent =
+      "Payment Element initialized. Select POC ACH and click Continue / Pay.";
+  } catch (err) {
+    messageEl.textContent =
+      "Error initializing Stripe Elements CPM: " + (err?.message || err);
+    messageEl.classList.add('error');
+    console.error(err);
+  }
+});
+
+document.getElementById('cpmContinueBtn').addEventListener('click', async () => {
+  const messageEl = document.getElementById('cpmMessage');
+  const cpmId = document.getElementById('cpmPaymentMethodId').value.trim();
+
+  messageEl.textContent = "";
+  messageEl.classList.remove('error');
+
+  if (!cpmElements) {
+    messageEl.textContent = "Please activate Stripe Elements first.";
+    messageEl.classList.add('error');
+    return;
+  }
+
+  try {
+    const { submitError, selectedPaymentMethod } = await cpmElements.submit();
+
+    if (submitError) {
+      messageEl.textContent = submitError.message || "Payment Element validation failed.";
+      messageEl.classList.add('error');
+      return;
+    }
+
+    if (selectedPaymentMethod === cpmId) {
+      console.log("Custom Payment Method selected:", selectedPaymentMethod);
+      showCpmPlaidScreen();
+      return;
+    }
+
+    messageEl.textContent =
+      `Stripe-native payment method selected (${selectedPaymentMethod || 'unknown'}). ` +
+      "The normal Stripe confirmation flow is intentionally not executed in this POC.";
+  } catch (err) {
+    messageEl.textContent = "Error reading selected payment method: " + (err?.message || err);
+    messageEl.classList.add('error');
+    console.error(err);
+  }
+});
+
+document.getElementById('simulatePlaidBackendBtn').addEventListener('click', () => {
+  pseudoTransferIntentId = makePseudoId("transfer-intent");
+  pseudoLinkToken = makePseudoId("link-sandbox");
+
+  const result = document.getElementById('pseudoPlaidApiResult');
+  result.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <strong>1. Omni Collect → Plaid</strong><br/>
+      <code>POST /transfer/intent/create</code><br/>
+      Returns: <code>${pseudoTransferIntentId}</code>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <strong>2. Chain to next Plaid API</strong><br/>
+      Use <code>transfer_intent.id = ${pseudoTransferIntentId}</code>
+      in <code>POST /link/token/create</code>
+    </div>
+
+    <div>
+      <strong>3. Plaid → Omni Collect → Frontend</strong><br/>
+      Returns pseudo <code>link_token</code>:<br/>
+      <code>${pseudoLinkToken}</code>
+    </div>
+  `;
+
+  document.getElementById('renderPlaidUiBtn').style.display = 'inline-block';
+});
+
+document.getElementById('renderPlaidUiBtn').addEventListener('click', () => {
+  if (!pseudoLinkToken) {
+    return;
+  }
+
+  document.getElementById('pseudoPlaidFinalResult').textContent = "";
+  document.getElementById('pseudoPlaidOverlay').style.display = 'block';
+});
+
+document.getElementById('pseudoPlaidAuthorizeBtn').addEventListener('click', () => {
+  pseudoTransferId = makePseudoId("transfer");
+  document.getElementById('pseudoPlaidFinalResult').innerHTML =
+    `Simulation complete: Plaid Link <code>onSuccess</code> returned. ` +
+    `Pseudo ACH transfer created: <code>${pseudoTransferId}</code>.`;
+});
+
+document.getElementById('pseudoPlaidCloseBtn').addEventListener('click', () => {
+  document.getElementById('pseudoPlaidOverlay').style.display = 'none';
+});
+
+document.getElementById('backToStripeBtn').addEventListener('click', () => {
+  document.getElementById('pseudoPlaidOverlay').style.display = 'none';
+  showCpmStripeScreen();
+});
+</script>
+
+
+</body>
+</html>
