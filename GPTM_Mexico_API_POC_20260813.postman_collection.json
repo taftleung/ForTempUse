@@ -1,7 +1,7 @@
 {
   "info": {
-    "_postman_id": "0b6b8acf-d766-4fc5-bfbd-7a7eb4a2acf3",
-    "name": "GPTM Mexico API POC 20260702 v2",
+    "_postman_id": "d680d243-1822-4f0e-8fed-a22abaf4b73e",
+    "name": "GPTM Mexico API POC 20260813",
     "description": "GPTM Mexico API POC collection. Updated based on GPTM guidance: Payment Link is not used for token generation; Mexico recurring uses MOTO transaction source with agreement.type=RECURRING and agreement.amountVariability.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "12409896"
@@ -1580,7 +1580,7 @@
           "name": "1.3 - Credential on File / Token Generation",
           "item": [
             {
-              "name": "1.3.1a - Initiate Checkout (Hosted Session)",
+              "name": "1.3.1 - Initiate Checkout (only supported by Hosted Session)",
               "event": [
                 {
                   "listen": "prerequest",
@@ -1747,180 +1747,6 @@
                   ]
                 },
                 "description": "Creates an HPP session with Credential on File parameters."
-              },
-              "response": []
-            },
-            {
-              "name": "1.3.1b - Initiate Checkout (Payment Link - not for Token Generation)",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "function cleanGuid(length) {",
-                      "    const guid = pm.variables.replaceIn('{{$guid}}').replace(/-/g, '');",
-                      "    return guid.substring(0, length || 24);",
-                      "}",
-                      "",
-                      "function setVar(name, value) {",
-                      "    pm.collectionVariables.set(name, String(value));",
-                      "    console.log('Set ' + name + ' = ' + value);",
-                      "}",
-                      "const id = cleanGuid(24);",
-                      "setVar('cof_orderId', 'ord' + id);",
-                      "setVar('cof_orderReference', 'ref' + id);",
-                      "setVar('cof_agreementId', 'ag' + id);",
-                      "pm.collectionVariables.unset('cof_tokenId');",
-                      "pm.collectionVariables.unset('cof_sessionId');",
-                      "pm.collectionVariables.set('cof_tokenSourceMode', 'PAYMENT_LINK_NO_SESSION');",
-                      "const expiryDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();",
-                      "setVar('cof_paymentLinkExpiryDateTime', expiryDateTime);"
-                    ]
-                  }
-                },
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "function saveCarryForward(prefix, jsonData, options) {",
-                      "    options = options || {};",
-                      "    if (!jsonData) return;",
-                      "",
-                      "    function setVar(name, value) {",
-                      "        if (value !== undefined && value !== null && value !== '') {",
-                      "            pm.collectionVariables.set(name, String(value));",
-                      "            console.log('Saved ' + name + ' = ' + value);",
-                      "        }",
-                      "    }",
-                      "",
-                      "    function setFlowVar(name, value) {",
-                      "        setVar(prefix + '_' + name, value);",
-                      "    }",
-                      "",
-                      "    function normalizeTransactionRecord(record) {",
-                      "        if (!record) return null;",
-                      "        const tx = record.transaction || record;",
-                      "        if (!tx || !tx.id) return null;",
-                      "        return {",
-                      "            id: tx.id,",
-                      "            type: (tx.type || '').toUpperCase(),",
-                      "            amount: tx.amount,",
-                      "            currency: tx.currency",
-                      "        };",
-                      "    }",
-                      "",
-                      "    const order = (jsonData.order && typeof jsonData.order === 'object') ? jsonData.order : jsonData;",
-                      "    if (order) {",
-                      "        if (order.id) setFlowVar('orderId', order.id);",
-                      "        if (order.reference) setFlowVar('orderReference', order.reference);",
-                      "        if (order.amount !== undefined) setFlowVar('amount', order.amount);",
-                      "        if (order.currency) setFlowVar('currency', order.currency);",
-                      "        if (order.status) setFlowVar('orderStatus', order.status);",
-                      "        if (order.totalCapturedAmount !== undefined) setFlowVar('capturedAmount', order.totalCapturedAmount);",
-                      "        if (order.totalRefundedAmount !== undefined) setFlowVar('refundedAmount', order.totalRefundedAmount);",
-                      "    }",
-                      "",
-                      "    if (jsonData.session && jsonData.session.id) setFlowVar('sessionId', jsonData.session.id);",
-                      "    if (jsonData.successIndicator) setFlowVar('successIndicator', jsonData.successIndicator);",
-                      "    if (jsonData.paymentLink && jsonData.paymentLink.url) setFlowVar('paymentLinkUrl', jsonData.paymentLink.url);",
-                      "    if (jsonData.paymentLink && jsonData.paymentLink.id) setFlowVar('paymentLinkId', jsonData.paymentLink.id);",
-                      "",
-                      "    const txns = [];",
-                      "    if (Array.isArray(jsonData.transaction)) {",
-                      "        jsonData.transaction.forEach(t => {",
-                      "            const normalized = normalizeTransactionRecord(t);",
-                      "            if (normalized) txns.push(normalized);",
-                      "        });",
-                      "    } else {",
-                      "        const normalized = normalizeTransactionRecord(jsonData);",
-                      "        if (normalized) txns.push(normalized);",
-                      "    }",
-                      "",
-                      "    if (txns.length) {",
-                      "        const paymentTxn = txns.find(t => t.type === 'PAYMENT' || t.type === 'PAY');",
-                      "        const authorizationTxn = txns.find(t => t.type === 'AUTHORIZATION' || t.type === 'AUTHORIZE');",
-                      "        const captureTxn = txns.find(t => t.type === 'CAPTURE');",
-                      "        const refundTxn = txns.find(t => t.type === 'REFUND');",
-                      "        const voidTxn = txns.find(t => t.type === 'VOID');",
-                      "        const authnTxn = txns.find(t => t.type === 'AUTHENTICATION');",
-                      "        const preferred = paymentTxn || authorizationTxn || captureTxn || refundTxn || voidTxn || txns.find(t => t.type !== 'AUTHENTICATION') || authnTxn;",
-                      "",
-                      "        if (paymentTxn) setFlowVar('paymentTransactionId', paymentTxn.id);",
-                      "        if (authorizationTxn) setFlowVar('authorizationTransactionId', authorizationTxn.id);",
-                      "        if (captureTxn) setFlowVar('captureTransactionId', captureTxn.id);",
-                      "        if (refundTxn) setFlowVar('refundTransactionId', refundTxn.id);",
-                      "        if (voidTxn) setFlowVar('voidTransactionId', voidTxn.id);",
-                      "        if (authnTxn) setFlowVar('authenticationTransactionId', authnTxn.id);",
-                      "        if (preferred) setFlowVar('transactionId', preferred.id);",
-                      "",
-                      "        if (options.updateActive) {",
-                      "            if (order && order.id) setVar('active_orderId', order.id);",
-                      "            if (order && order.amount !== undefined) setVar('active_amount', order.amount);",
-                      "            if (order && order.currency) setVar('active_currency', order.currency);",
-                      "            if (paymentTxn) setVar('active_paymentTransactionId', paymentTxn.id);",
-                      "            if (authorizationTxn) setVar('active_authorizationTransactionId', authorizationTxn.id);",
-                      "            if (preferred) setVar('active_transactionId', preferred.id);",
-                      "            setVar('active_sourceFlow', prefix);",
-                      "        }",
-                      "    }",
-                      "}",
-                      "",
-                      "let jsonData = {};",
-                      "try {",
-                      "    jsonData = pm.response.json();",
-                      "    saveCarryForward('cof', jsonData, { updateActive: false });",
-                      "    console.log('[cof] carry-forward values saved from response');",
-                      "} catch (e) {",
-                      "    console.warn('[cof] response is not JSON or no values to save', e);",
-                      "}",
-                      "",
-                      "try {",
-                      "    const json = pm.response.json();",
-                      "    if (json.session && json.session.id) {",
-                      "        pm.collectionVariables.set('cof_sessionId', json.session.id);",
-                      "        pm.collectionVariables.set('cof_tokenSourceMode', 'PAYMENT_LINK_WITH_SESSION');",
-                      "    }",
-                      "} catch (e) {}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"apiOperation\": \"INITIATE_CHECKOUT\",\n    \"interaction\": {\n        \"operation\": \"PURCHASE\",\n        \"merchant\": {\n            \"name\": \"GPTM Mexico POC\"\n        },\n        \"returnUrl\": \"https://example.com/return\",\n        \"cancelUrl\": \"https://example.com/cancel\",\n        \"timeoutUrl\": \"https://example.com/timeout\",\n        \"locale\": \"es_MX\",\n        \"timeout\": \"600\"\n    },\n    \"order\": {\n        \"id\": \"{{cof_orderId}}\",\n        \"amount\": \"1.00\",\n        \"currency\": \"MXN\",\n        \"reference\": \"{{cof_orderReference}}\",\n        \"description\": \"This is a POC test\"\n    },\n    \"agreement\": {\n        \"id\": \"{{cof_agreementId}}\"\n    },\n    \"checkoutMode\": \"PAYMENT_LINK\",\n    \"paymentLink\": {\n        \"expiryDateTime\": \"{{cof_paymentLinkExpiryDateTime}}\",\n        \"numberOfAllowedAttempts\": \"10\"\n    }\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/rest/version/{{apiVersion}}/merchant/{{merchantId}}/session",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "rest",
-                    "version",
-                    "{{apiVersion}}",
-                    "merchant",
-                    "{{merchantId}}",
-                    "session"
-                  ]
-                },
-                "description": "Creates a Payment Link for payment result testing only. GPTM confirmed tokenization is not supported through Payment Link, so this request must not be used to feed 1.3.4 Create or Update Token."
               },
               "response": []
             },
@@ -2457,7 +2283,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "function saveCarryForward(prefix, jsonData, options) {",
                       "    options = options || {};",
@@ -2550,13 +2375,15 @@
                       "} catch (e) {",
                       "    console.warn('[recurring] response is not JSON or no values to save', e);",
                       "}"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 },
                 {
                   "listen": "prerequest",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "function cleanGuid(length) {",
                       "    const guid = pm.variables.replaceIn('{{$guid}}').replace(/-/g, '');",
@@ -2578,7 +2405,10 @@
                       "console.log('[Recurring MOTO] orderId:', pm.collectionVariables.get('recurring_orderId'));",
                       "console.log('[Recurring MOTO] transactionId:', pm.collectionVariables.get('recurring_transactionId'));",
                       "console.log('[Recurring MOTO] tokenId:', pm.collectionVariables.get('cof_tokenId'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
@@ -2593,7 +2423,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"apiOperation\": \"PAY\",\n    \"order\": {\n        \"amount\": \"1.00\",\n        \"currency\": \"MXN\",\n        \"reference\": \"{{recurring_orderReference}}\",\n        \"description\": \"This is a POC test\"\n    },\n    \"sourceOfFunds\": {\n        \"type\": \"CARD\",\n        \"token\": \"{{cof_tokenId}}\"\n    },\n    \"agreement\": {\n        \"id\": \"{{cof_agreementId}}\",\n        \"type\": \"RECURRING\",\n        \"amountVariability\": \"FIXED\"\n    },\n    \"transaction\": {\n        \"source\": \"MOTO\"\n    }\n}",
+                  "raw": "{\n    \"apiOperation\": \"PAY\",\n    \"order\": {\n        \"amount\": \"2.00\",\n        \"currency\": \"MXN\",\n        \"reference\": \"{{recurring_orderReference}}\",\n        \"description\": \"This is a POC test\"\n    },\n    \"sourceOfFunds\": {\n        \"type\": \"CARD\",\n        \"token\": \"{{cof_tokenId}}\"\n    },\n    \"agreement\": {\n        \"id\": \"{{cof_agreementId}}\",\n        \"type\": \"RECURRING\",\n        \"amountVariability\": \"FIXED\"\n    },\n    \"transaction\": {\n        \"source\": \"MOTO\"\n    }\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3294,188 +3124,219 @@
   "variable": [
     {
       "key": "active_amount",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "active_currency",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "active_orderId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "active_tokenId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "apiPassword",
-      "value": "b11bccd2a5f7d6daf6382372e2f3f03f",
-      "type": "string"
+      "value": "b11bccd2a5f7d6daf6382372e2f3f03f"
     },
     {
       "key": "apiVersion",
-      "value": "100",
-      "type": "string"
+      "value": "100"
     },
     {
       "key": "baseUrl",
-      "value": "https://evopaymentsmexico.gateway.mastercard.com",
-      "type": "string"
+      "value": "https://evopaymentsmexico.gateway.mastercard.com"
     },
     {
       "key": "cof_agreementId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "cof_orderId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "cof_orderReference",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "cof_paymentLinkExpiryDateTime",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "cof_sessionId",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "cof_tokenId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "cof_tokenResult",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "cof_tokenSourceMode",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "cof_transactionId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "manual_captureTransactionId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "manual_orderId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "manual_orderReference",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "manual_paymentLinkExpiryDateTime",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "manual_transactionId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "manual_voidTransactionId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "merchantId",
-      "value": "TESTOMNIC_MER2",
-      "type": "string"
+      "value": "TESTOMNIC_MER2"
     },
     {
       "key": "recurring_orderId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "recurring_orderReference",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "recurring_transactionId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "refund_amount",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "refund_currency",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "refund_orderId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "refund_transactionId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "single_orderId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "single_orderReference",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "single_paymentLinkExpiryDateTime",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "single_transactionId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "void_orderId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "void_targetTransactionId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "void_transactionId",
-      "value": "",
-      "type": "string"
+      "value": ""
+    },
+    {
+      "key": "cof_successIndicator",
+      "value": ""
+    },
+    {
+      "key": "cof_amount",
+      "value": ""
+    },
+    {
+      "key": "cof_currency",
+      "value": ""
+    },
+    {
+      "key": "cof_orderStatus",
+      "value": ""
+    },
+    {
+      "key": "cof_capturedAmount",
+      "value": ""
+    },
+    {
+      "key": "cof_refundedAmount",
+      "value": ""
+    },
+    {
+      "key": "cof_paymentTransactionId",
+      "value": ""
+    },
+    {
+      "key": "cof_authenticationTransactionId",
+      "value": ""
+    },
+    {
+      "key": "active_paymentTransactionId",
+      "value": ""
+    },
+    {
+      "key": "active_transactionId",
+      "value": ""
+    },
+    {
+      "key": "active_sourceFlow",
+      "value": ""
+    },
+    {
+      "key": "recurring_amount",
+      "value": ""
+    },
+    {
+      "key": "recurring_currency",
+      "value": ""
+    },
+    {
+      "key": "recurring_orderStatus",
+      "value": ""
+    },
+    {
+      "key": "recurring_capturedAmount",
+      "value": ""
+    },
+    {
+      "key": "recurring_refundedAmount",
+      "value": ""
+    },
+    {
+      "key": "recurring_paymentTransactionId",
+      "value": ""
+    },
+    {
+      "key": "active_orderReference",
+      "value": ""
     }
   ]
 }
